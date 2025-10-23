@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FBHeader from "./FBHeader";
 import FBPlayers from "./FBPlayers";
 import FBFooter from "./FBFooter";
@@ -28,15 +28,15 @@ const GameTable = () => {
 
     return (
         <div className="bg-teal-700 min-h-screen flex flex-col items-center">
-            <FBHeader />
-            <main className="w-full flex-grow flex flex-col items-center justify-between md:p-8">
+            <FBHeader display_stats = {true}/>
+            <main className="w-full grow flex flex-col items-center justify-between md:p-2">
                 
                 <div className="flex flex-col w-full lg:flex-row items-center gap-4">
                     <FBPlayers />
                 </div>
 
                 <motion.div 
-                    className="w-full lg:w-128 bg-black/20 rounded-xl border-2 border-dashed border-teal-500 flex-shrink-0 flex flex-col justify-center items-center m-1 p-2 h-48"
+                    className="w-full lg:w-lg bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col justify-center items-center m-1 p-2 h-48"
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
