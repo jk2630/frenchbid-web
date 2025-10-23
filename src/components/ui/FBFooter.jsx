@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import fbLogo from "../assets/frenchbid_logo.png";
+import fbLogo from "../../assets/frenchbid_logo.png";
 
 // --- Footer Component ---
 // A simple footer for the bottom of the page.

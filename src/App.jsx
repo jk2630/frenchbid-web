@@ -1,10 +1,7 @@
-import GameTable from "./components/GameTable";
+import GameTable from "./components/ui/GameTable";
 
-// --- App Entry Point ---
 export default function App() {
-  return (
-    <>
-      <GameTable />
-    </>
-  );
+  return <div>
+    <GameTable />
+  </div>
 }

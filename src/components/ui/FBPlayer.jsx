@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Card from "./Card";
+import Card from "../Card";
 
 // --- Single Player Component ---
 // Opponent cards are not interactive.
