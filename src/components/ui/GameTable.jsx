@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FBHeader from "./FBHeader";
 import FBPlayers from "./FBPlayers";
 import FBFooter from "./FBFooter";
-import Card from "./Card";
+import Card from "../Card";
 
 // --- Main Game Table Component ---
 // This component assembles the entire UI.

@@ -1,10 +1,11 @@
-import GameTable from "./components/GameTable";
+// import GameTable from "./components/GameTable";
 
-// --- App Entry Point ---
+import FBButton from "./components/FBButton";
+
 export default function App() {
   return (
-    <>
-      <GameTable />
-    </>
+    <div>
+      <FBButton buttonText = "Submit" px = "px-6" py = "py-1"/>
+    </div>
   );
 }
