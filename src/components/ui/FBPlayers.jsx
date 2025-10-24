@@ -20,7 +20,7 @@ const FBPlayers = () => {
     };
 
     return (
-        <div className="flex-grow bg-black/20 p-4 rounded-xl border-2 border-teal-500">
+        <div className="grow bg-black/20 p-4 rounded-xl border-2 border-teal-500">
             <motion.div 
                 className="flex flex-wrap justify-around gap-4"
                 variants={containerVariants}
