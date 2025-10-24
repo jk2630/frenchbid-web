@@ -39,7 +39,7 @@ const router = createBrowserRouter([
     element: <AboutPage />
   }
 ], {
-  basename: "/app",
+  basename: "/frenchbid-web",
 });
 
 createRoot(document.getElementById('root')).render(

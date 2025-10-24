@@ -8,5 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  base: '/app/',
+  base: '/frenchbid-web/',
 })
