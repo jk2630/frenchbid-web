@@ -29,9 +29,9 @@ const LoginPage = () => {
                         <label>Password</label>
                         <FBInputBox type="password" place_holder="password" name="password"/>
                     </div>
-                    <div className="flex flex-col justify-center items-center">
+                    <div className="w-1/2 flex flex-col justify-center items-end">
                         <FBButton buttonText="Login" type="submit" px="px-13"/>
-                        <Link to="/register" className="underline text-teal-100 hover:text-teal-400 visited:text-teal-950 transition-colors duration-200">Create Account</Link>
+                        <Link to="/register" className="underline mr-8 text-teal-100 hover:text-teal-400 visited:text-teal-950 transition-colors duration-200">Create Account</Link>
                     </div>
                 </div>
             </form>

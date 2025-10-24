@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import SignUpPage from './pages/SignUpPage.jsx';
 import AboutPage from "./pages/AboutPage.jsx";
 import GameRules from "./pages/GameRules.jsx";
+import ContactPage from './pages/ContactPage.jsx';
 
 // routes
 const router = createBrowserRouter([
@@ -35,8 +36,12 @@ const router = createBrowserRouter([
   {
     path: "/about",
     element: <AboutPage />
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />
   }
-], 
+],
 // {
 //   basename: "/frenchbid-web",
 // }
