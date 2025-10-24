@@ -22,7 +22,7 @@ const FBFooter = () => (
             <div className="flex gap-6 text-gray-300">
                 <Link to="/game/rules" className="hover:text-yellow-400 transition-colors">Rules</Link>
                 <Link to="/about" className="hover:text-yellow-400 transition-colors">About</Link>
-                <Link href="#" className="hover:text-yellow-400 transition-colors">Contact</Link>
+                <Link to="/contact" className="hover:text-yellow-400 transition-colors">Contact</Link>
             </div>
             <div className="flex gap-4 text-2xl">
                 <Link href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-twitter"></i></Link>
