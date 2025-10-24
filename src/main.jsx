@@ -38,9 +38,11 @@ const router = createBrowserRouter([
     path: "/about",
     element: <AboutPage />
   }
-], {
-  basename: "/frenchbid-web",
-});
+], 
+// {
+//   basename: "/frenchbid-web",
+// }
+);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
