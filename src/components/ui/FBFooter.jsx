@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import fbLogo from "../../assets/frenchbid_logo.png";
+import { Link } from "react-router-dom";
 
 // --- Footer Component ---
 // A simple footer for the bottom of the page.
@@ -19,14 +20,14 @@ const FBFooter = () => (
                 </div>
             </div>
             <div className="flex gap-6 text-gray-300">
-                <a href="#" className="hover:text-yellow-400 transition-colors">Rules</a>
-                <a href="#" className="hover:text-yellow-400 transition-colors">About</a>
-                <a href="#" className="hover:text-yellow-400 transition-colors">Contact</a>
+                <Link to="/game/rules" className="hover:text-yellow-400 transition-colors">Rules</Link>
+                <Link href="#" className="hover:text-yellow-400 transition-colors">About</Link>
+                <Link href="#" className="hover:text-yellow-400 transition-colors">Contact</Link>
             </div>
             <div className="flex gap-4 text-2xl">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-twitter"></i></a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-facebook"></i></a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-instagram"></i></a>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-twitter"></i></Link>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-facebook"></i></Link>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-instagram"></i></Link>
             </div>
         </div>
     </motion.footer>
