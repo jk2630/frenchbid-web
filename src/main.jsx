@@ -36,7 +36,7 @@ const router = createBrowserRouter([
     path: "/about",
     element: <AboutPage />
   }
-], 
+],
 // {
 //   basename: "/frenchbid-web",
 // }

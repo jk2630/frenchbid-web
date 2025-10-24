@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 // --- Footer Component ---
 // A simple footer for the bottom of the page.
 const FBFooter = () => (
-    <motion.footer 
+    <motion.footer
         className="w-full bg-gray-800 text-white p-3 mt-auto shadow-inner"
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -21,7 +21,7 @@ const FBFooter = () => (
             </div>
             <div className="flex gap-6 text-gray-300">
                 <Link to="/game/rules" className="hover:text-yellow-400 transition-colors">Rules</Link>
-                <Link href="#" className="hover:text-yellow-400 transition-colors">About</Link>
+                <Link to="/about" className="hover:text-yellow-400 transition-colors">About</Link>
                 <Link href="#" className="hover:text-yellow-400 transition-colors">Contact</Link>
             </div>
             <div className="flex gap-4 text-2xl">
