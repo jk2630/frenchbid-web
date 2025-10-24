@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import fbLogo from "../../assets/frenchbid_logo.png";
-import Logout from "../FBLogout";
+import FBMenuDropDown from "./FBMenuDropDown";
 
 // --- Header Component ---
 // Re-styled to include the quote and ensure single-line layout on larger screens.
@@ -26,7 +26,7 @@ const FBHeader = (props) => {
                 <span className="flex items-center gap-2"><i className="fas fa-users text-yellow-400"></i>Players: 6</span>
                 <span className="flex items-center gap-2"><i className="fas fa-sync-alt text-yellow-400"></i>Round: 3 / 14</span>
                 <span className="flex items-center gap-2"><i className="fas fa-crown text-yellow-400"></i>Top: Player A</span>
-                <span className="flex items-center gap-2 mr-2"><Logout /></span>
+                <span className="flex items-center gap-2 mx-4 md:mx-12"><FBMenuDropDown /></span>
             </div>
         }
     </motion.header>
