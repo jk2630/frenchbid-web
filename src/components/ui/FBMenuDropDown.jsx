@@ -7,7 +7,7 @@ const FBMenuDropDown = () => {
 
     return <div className="">
             <div className="relative text-left flex flex-col">
-                
+
                 <FBMenuButton isActive={isActive} setIsActive={setIsActive}/>
 
                 {isActive && (
@@ -16,7 +16,7 @@ const FBMenuDropDown = () => {
 
                         <Link to="#" className="p-2">Profile</Link>
                         <Link to="/about" className="p-2">About</Link>
-                        <Link to="#" className="p-2">Leave game</Link>
+                        <Link to="/dashboard" className="p-2">Leave game</Link>
                         <Link to="/login" className="p-2">Logout</Link>
 
                     </div>

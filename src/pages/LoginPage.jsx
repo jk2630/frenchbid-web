@@ -10,7 +10,7 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const handleLogin = (event) => {
         event.preventDefault();
-        navigate("/game");
+        navigate("/dashboard");
     };
 
     return <div className="bg-teal-700 min-h-screen flex flex-col items-center">

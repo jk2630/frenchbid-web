@@ -1,8 +1,9 @@
-import GameTable from "./components/ui/GameTable";
-import SignUpPage from "./pages/SignUpPage";
+import Lobby from "./pages/Lobby";
 
-export default function App() {
+const App = () => {
   return <div>
-    <SignUpPage />
+    <Lobby />
   </div>
-}
+};
+
+export default App;

@@ -13,7 +13,7 @@ const GameTable = () => {
         { rank: "K", suit: "hearts" }, { rank: "10", suit: "diamonds" },
         { rank: "Q", suit: "spades" }, { rank: "5", suit: "hearts" },
         { rank: "2", suit: "diamonds" },{ rank: "2", suit: "diamonds" },
-        { rank: "2", suit: "diamonds" }, { rank: "Q", suit: "spades" }, 
+        { rank: "2", suit: "diamonds" }, { rank: "Q", suit: "spades" },
         { rank: "5", suit: "hearts" }
     ];
 
@@ -28,14 +28,14 @@ const GameTable = () => {
 
     return (
         <div className="bg-teal-700 min-h-screen flex flex-col items-center">
-            <FBHeader display_stats = {true}/>
+            <FBHeader display_stats = {true} display_menu={true}/>
             <main className="w-full grow flex flex-col items-center justify-between p-2">
-                
+
                 <div className="flex flex-col w-full lg:flex-row items-center gap-4">
                     <FBPlayers />
                 </div>
 
-                <motion.div 
+                <motion.div
                     className="w-full lg:w-lg bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col justify-center items-center m-1 p-2 h-54"
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -46,7 +46,7 @@ const GameTable = () => {
                 </motion.div>
 
                 {/* Player's Hand Section */}
-                <motion.div 
+                <motion.div
                     className="flex flex-col items-center"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}

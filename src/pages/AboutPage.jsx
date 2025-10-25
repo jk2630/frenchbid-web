@@ -1,6 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const AboutPage = () => {
+
+    const navigate = useNavigate();
+
   return (
     // Page container
     <div className="min-h-screen bg-gray-900 text-gray-200 p-4 sm:p-8">
@@ -13,13 +16,14 @@ const AboutPage = () => {
           <h1 className="text-4xl sm:text-5xl font-bold text-amber-300">
             About French Bid
           </h1>
-          {/* Back link */}
-          <Link
-            to="/"
-            className="absolute top-0 left-0 text-teal-400 hover:text-teal-300 transition-colors"
+
+          <button
+            onClick={() => navigate(-1)} // This will go back to the previous page
+            className="absolute top-0 left-0 text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
           >
-            &larr; Back to Home
-          </Link>
+            &larr; Go Back
+          </button>
+
         </div>
 
         {/* --- Section: About the Game --- */}
