@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const ContactPage = () => {
 
+    const navigate = useNavigate();
   // A placeholder handler for the form
   // In a real app, this would send the data to a backend or email service
   const handleSubmit = (event) => {
@@ -29,12 +30,12 @@ const ContactPage = () => {
             Contact Us
           </h1>
           {/* Back link */}
-          <Link
-            to="/"
-            className="absolute top-0 left-0 text-teal-400 hover:text-teal-300 transition-colors"
+          <button
+            onClick={() => navigate(-1)} // This will go back to the previous page
+            className="absolute top-0 left-0 text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
           >
-            &larr; Back to Home
-          </Link>
+            &larr; Go Back
+          </button>
         </div>
 
         {/* --- Section: Get in Touch --- */}

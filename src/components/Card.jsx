@@ -14,13 +14,13 @@ const Card = ({ rank, suit, width = "w-24", height = "h-36", isInteractive = tru
 
     const rankFontSize = width === "w-20" ? 'text-xl' : 'text-2xl';
     const suitFontSize = width === "w-20" ? 'text-4xl' : 'text-5xl';
-    
+
     // Conditionally apply hover animation
     const hoverAnimation = isInteractive ? { scale: 1.1, y: -10, cursor: 'pointer' } : {};
 
     return (
         <motion.div
-            className={`bg-white rounded-lg shadow-md flex flex-col justify-between p-2 border border-gray-300 flex-shrink-0 ${width} ${height}`}
+            className={`bg-white rounded-lg shadow-md flex flex-col justify-between p-2 border border-gray-300 shrink-0 ${width} ${height}`}
             whileHover={hoverAnimation}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
         >

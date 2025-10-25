@@ -10,6 +10,8 @@ import SignUpPage from './pages/SignUpPage.jsx';
 import AboutPage from "./pages/AboutPage.jsx";
 import GameRules from "./pages/GameRules.jsx";
 import ContactPage from './pages/ContactPage.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import Lobby from './pages/Lobby.jsx';
 
 // routes
 const router = createBrowserRouter([
@@ -32,6 +34,14 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <SignUpPage />
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />
+  },
+  {
+    path: "/lobby",
+    element: <Lobby />
   },
   {
     path: "/about",

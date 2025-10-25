@@ -1,6 +1,9 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const GameRules = () => {
+
+    const navigate = useNavigate();
+
   return (
     // Page container
     <div className="min-h-screen bg-gray-900 text-gray-200 p-4 sm:p-8">
@@ -14,12 +17,12 @@ const GameRules = () => {
             French Bid Rules
           </h1>
           {/* Back link to return to the game */}
-          <Link
-            to="/game"
-            className="absolute top-0 left-0 text-teal-400 hover:text-teal-300 transition-colors"
+          <button
+            onClick={() => navigate(-1)} // This will go back to the previous page
+            className="absolute top-0 left-0 text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
           >
-            &larr; Back to Game
-          </Link>
+            &larr; Go Back
+          </button>
         </div>
 
         {/* --- Navigation Bar --- */}
