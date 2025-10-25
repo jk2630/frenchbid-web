@@ -1,8 +1,8 @@
-import Lobby from "./pages/Lobby";
+import LoginPage from "./pages/Loginpage";
 
 const App = () => {
   return <div>
-    <Lobby />
+    <LoginPage />
   </div>
 };
 
