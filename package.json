@@ -5,6 +5,7 @@
   "type": "module",
   "homepage": "https://jk2630.github.io/frenchbid-web",
   "scripts": {
+    "start": "npm run dev",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -15,6 +16,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@tailwindcss/vite": "^4.1.15",
+    "axios": "^1.13.0",
     "framer-motion": "^12.23.24",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
