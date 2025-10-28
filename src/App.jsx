@@ -1,9 +1,7 @@
-import LoginPage from "./pages/LoginPage"
+import LoginPage from "./pages/LoginPage";
 
 const App = () => {
-  return <div>
-    <LoginPage />
-  </div>
+  return <LoginPage />;
 };
 
 export default App;
