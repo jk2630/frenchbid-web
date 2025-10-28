@@ -23,7 +23,6 @@ const SignUpPage = () => {
       if (response.status == 201 || response.status == 200) {
         setMessage("Player Created Successfully");
         updatePlayer(response.data);
-        console.log(player);
         navigate("/dashboard");
       } else if (response.status >= 400 && response.status < 500) {
         setMessage(response.data.message);
