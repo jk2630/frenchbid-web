@@ -39,22 +39,6 @@ export const GameContextProvider = ({ children }) => {
   const [scores, setScores] = useState([]);
   const [gameData, setGameData] = useState(defaultGameData);
 
-  useEffect(() => {
-    console.log("gameInfo:", gameInfo);
-  }, [gameInfo]);
-  useEffect(() => {
-    console.log("gamePlayers:", gamePlayers);
-  }, [gamePlayers]);
-  useEffect(() => {
-    console.log("gameRounds:", gameRounds);
-  }, [gameRounds]);
-  useEffect(() => {
-    console.log("scores:", scores);
-  }, [scores]);
-  useEffect(() => {
-    console.log("gameData:", gameData);
-  }, [gameData]);
-
   const createGame = (game) => {
     // game info
     setGameInfo({
