@@ -2,6 +2,12 @@ import { useState } from "react"; // Import useState
 import FBFooter from "../components/ui/FBFooter";
 import FBHeader from "../components/ui/FBHeader";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import useGame from "../hooks/useGame";
+import { GameContext } from "../context/GameContext";
+import usePlayer from "../hooks/usePlayer";
+import { PlayerContext } from "../context/PlayerContext";
+import { useAxiosClient } from "../hooks/axiosClient";
+import { useGameService } from "../service/game/useGameService";
 
 // --- Mock Data: Changed 'round' to 'isPublic' ---
 const activeGames = [
@@ -29,6 +35,12 @@ const Dashboard = () => {
   const [selectedGame, setSelectedGame] = useState(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  // game context data
+  const { gameInfo, updateGameInfo } = useGame(GameContext);
+
+  // client hook
+  const { createGameAPI } = useGameService(navigate);
 
   // --- Click Handler for Join Button ---
   const handleJoinClick = (game) => {
@@ -61,9 +73,26 @@ const Dashboard = () => {
     }
   };
 
-  const handleCreateGame = (event) => {
+  const handleCreateGame = async (event) => {
     event.preventDefault();
-    navigate("/lobby");
+    const gameRequest = {
+      gameName: gameInfo.gameName,
+      password: gameInfo.password,
+      isPrivate: gameInfo.isPrivate,
+    };
+    try {
+      await createGameAPI(gameRequest);
+    } catch (error) {
+      console.error("error:", error);
+    }
+    // navigate("/lobby");
+  };
+
+  const handleOnChangeForGameInfo = (event) => {
+    const { name, type, value, checked } = event.target;
+    updateGameInfo({
+      [name]: type === "checkbox" ? checked : value,
+    });
   };
 
   // --- Function to close the modal ---
@@ -144,15 +173,47 @@ const Dashboard = () => {
               </h2>
               <form onSubmit={handleCreateGame} className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">
+                  <label
+                    htmlFor="gameName"
+                    className="block text-sm font-medium text-gray-200 mb-1"
+                  >
                     Game Name
                   </label>
                   <input
                     type="text"
                     placeholder="e.g., 'My Awesome Game'"
+                    name="gameName"
+                    onChange={handleOnChangeForGameInfo}
                     className="w-full p-3 bg-gray-700/90 rounded-md border border-gray-600 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                   />
                 </div>
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-200 mb-1"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter game password"
+                    name="password"
+                    onChange={handleOnChangeForGameInfo}
+                    className="w-full p-3 bg-gray-700/90 rounded-md border border-gray-600 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="flex text-sm font-normal text-gray-200">
+                    <input
+                      type="checkbox"
+                      name="isPrivate"
+                      checked={gameInfo?.isPrivate}
+                      onChange={handleOnChangeForGameInfo}
+                    />
+                    <span className="p-1">private</span>
+                  </label>
+                </div>
+
                 <button
                   type="submit"
                   className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg text-lg transition-transform hover:scale-105 cursor-pointer"

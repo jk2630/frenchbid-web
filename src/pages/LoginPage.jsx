@@ -35,8 +35,7 @@ const LoginPage = () => {
       }
     } catch (error) {
       setMessage(
-        error.response?.data?.message ||
-          "Sign up failed. Please try again later"
+        error.response?.data || "Log in failed. Please try again later"
       );
       console.log(error);
     } finally {
@@ -107,7 +106,7 @@ const LoginPage = () => {
                 onChange={handleOnChange}
               />
             </div>
-
+            {message && <p className="text-center">{message}</p>}
             {/* Button + Link */}
             <div className="flex flex-col items-center justify-center">
               <FBButton
@@ -117,7 +116,7 @@ const LoginPage = () => {
               />
               <Link
                 to="/register"
-                className="underline text-teal-100 hover:text-teal-400 visited:text-teal-950 transition-colors duration-200 text-sm sm:text-base mt-2"
+                className="underline text-teal-100 hover:text-teal-400 visited:text-teal-950 transition-colors duration-200 text-sm sm:text-base"
               >
                 Create an Account
               </Link>
