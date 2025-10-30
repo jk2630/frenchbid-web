@@ -22,8 +22,9 @@ const SignUpPage = () => {
       const response = await playerService.createPlayer(playerRequest);
       if (response.status == 201 || response.status == 200) {
         setMessage("Player Created Successfully");
+        alert("Player Created Successfully. Please login");
         updatePlayer(response.data);
-        navigate("/dashboard");
+        navigate("/login");
       } else if (response.status >= 400 && response.status < 500) {
         setMessage(response.data.message);
       }
