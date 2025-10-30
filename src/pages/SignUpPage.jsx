@@ -142,7 +142,6 @@ const SignUpPage = () => {
                 type="password"
                 place_holder="Password"
                 name="password"
-                value={player?.password || ""}
                 onChange={handleOnChange}
               />
             </div>
