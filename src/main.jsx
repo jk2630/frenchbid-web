@@ -13,6 +13,7 @@ import ContactPage from "./pages/ContactPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Lobby from "./pages/Lobby.jsx";
 import PlayerContextProvider from "./context/PlayerContext.jsx";
+import { GameContextProvider } from "./context/GameContext.jsx";
 
 // routes
 const router = createBrowserRouter(
@@ -61,8 +62,10 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <PlayerContextProvider>
-      <RouterProvider router={router} />
-    </PlayerContextProvider>
+    <GameContextProvider>
+      <PlayerContextProvider>
+        <RouterProvider router={router} />
+      </PlayerContextProvider>
+    </GameContextProvider>
   </StrictMode>
 );

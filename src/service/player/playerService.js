@@ -3,6 +3,7 @@ import axios from "axios";
 const BASE_RENDER_URL = "https://frenchbid-api.onrender.com/api";
 const BASE_LOCAL_URL = "http://localhost:8080/api";
 
+// unAuthenticated api's
 class PlayerService {
   createPlayer(player) {
     return axios.post(BASE_RENDER_URL + "/auth/players", player);
