@@ -31,6 +31,7 @@ const LoginPage = () => {
         const { accessToken, playerDetails } = res.data;
         loginPlayer(playerDetails, accessToken);
         console.log("Login Successfull");
+        navigate("/dashboard");
       }
     } catch (error) {
       setMessage(
@@ -41,7 +42,6 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
-    navigate("/dashboard");
   };
 
   const handleOnChange = (event) => {
