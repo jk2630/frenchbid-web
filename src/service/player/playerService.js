@@ -5,12 +5,12 @@ const BASE_LOCAL_URL = "http://localhost:8080/api";
 
 class PlayerService {
   createPlayer(player) {
-    return axios.post(BASE_LOCAL_URL + "/auth/players", player);
+    return axios.post(BASE_RENDER_URL + "/auth/players", player);
   }
 
   async loginPlayer(player) {
     return axios
-      .post(BASE_LOCAL_URL + "/auth/login", player, {
+      .post(BASE_RENDER_URL + "/auth/login", player, {
         withCredentials: true,
       })
       .then((res) => {
