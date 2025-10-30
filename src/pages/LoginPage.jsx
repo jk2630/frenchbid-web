@@ -3,13 +3,51 @@ import FBHeader from "../components/ui/FBHeader";
 import FBInputBox from "../components/FBInputBox";
 import FBButton from "../components/FBButton";
 import { useNavigate, Link } from "react-router-dom";
+import usePlayer from "../hooks/usePlayer";
+import { PlayerContext } from "../context/PlayerContext";
+import { useState } from "react";
+import playerService from "../service/player/playerService";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const { player, updatePlayer, loginPlayer } = usePlayer(PlayerContext);
 
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
+
+    const loginRequest = {
+      playerName: player.playerName,
+      password: player.password,
+    };
+
+    setLoading(true);
+    try {
+      const res = await playerService.loginPlayer(loginRequest);
+      if (res == null) {
+        console.log("null response");
+      } else if (res.status == 200) {
+        const { accessToken, playerDetails } = res.data;
+        loginPlayer(playerDetails, accessToken);
+        console.log("Login Successfull");
+      }
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message ||
+          "Sign up failed. Please try again later"
+      );
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
     navigate("/dashboard");
+  };
+
+  const handleOnChange = (event) => {
+    event.preventDefault();
+    const { name, value } = event.target;
+    updatePlayer({ [name]: value });
   };
 
   return (
@@ -40,15 +78,17 @@ const LoginPage = () => {
             {/* Player ID */}
             <div className="flex flex-col gap-2">
               <label
-                htmlFor="playerId"
+                htmlFor="playerName"
                 className="text-base md:text-sm font-normal"
               >
-                Player ID
+                Player Name
               </label>
               <FBInputBox
                 type="text"
-                place_holder="Enter your player ID"
-                name="playerId"
+                place_holder="Enter your username"
+                name="playerName"
+                value={player?.playerName || ""}
+                onChange={handleOnChange}
               />
             </div>
 
@@ -64,12 +104,17 @@ const LoginPage = () => {
                 type="password"
                 place_holder="Enter your password"
                 name="password"
+                onChange={handleOnChange}
               />
             </div>
 
             {/* Button + Link */}
             <div className="flex flex-col items-center justify-center">
-              <FBButton buttonText="Login" type="submit" px="px-10" />
+              <FBButton
+                buttonText={loading ? "Logging in" : "Login"}
+                type="submit"
+                px="px-10"
+              />
               <Link
                 to="/register"
                 className="underline text-teal-100 hover:text-teal-400 visited:text-teal-950 transition-colors duration-200 text-sm sm:text-base mt-2"
