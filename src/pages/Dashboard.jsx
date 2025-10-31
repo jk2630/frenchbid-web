@@ -62,7 +62,6 @@ const Dashboard = () => {
     const fetchActiveGames = async () => {
       try {
         const res = await fetchGamesAPI(fetchGamesRequest);
-        console.log("Active games:", res);
         setActiveGamesList(res);
       } catch (error) {
         console.error("handleCreateGame:", error);

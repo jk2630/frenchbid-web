@@ -9,7 +9,6 @@ class PlayerService {
   }
 
   async loginPlayer(player) {
-    console.log("base url is:", BASE_URL);
     return axios
       .post(BASE_URL + "/auth/login", player, {
         withCredentials: true,
