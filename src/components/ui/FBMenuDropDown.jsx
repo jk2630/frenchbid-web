@@ -1,10 +1,21 @@
 import { useState } from "react";
 import FBMenuButton from "../FBMenuButton";
 import { Link } from "react-router";
+import usePlayer from "../../hooks/usePlayer";
+import { PlayerContext } from "../../context/PlayerContext";
+import playerService from "../../service/player/playerService";
 
 const FBMenuDropDown = (props) => {
   const { inGame } = props;
   const [isActive, setIsActive] = useState(false);
+
+  const { player, logoutPlayer } = usePlayer(PlayerContext);
+
+  const handleLogoutPlayer = () => {
+    const playerName = player.playerName;
+    logoutPlayer();
+    playerService.logoutPlayer(playerName);
+  };
 
   return (
     <div className="">
@@ -27,7 +38,7 @@ const FBMenuDropDown = (props) => {
                 Leave game
               </Link>
             )}
-            <Link to="/login" className="p-2">
+            <Link to="/login" onClick={handleLogoutPlayer} className="p-2">
               Logout
             </Link>
           </div>

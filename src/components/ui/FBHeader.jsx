@@ -5,7 +5,7 @@ import FBMenuDropDown from "./FBMenuDropDown";
 // --- Header Component ---
 // Re-styled to include the quote and ensure single-line layout on larger screens.
 const FBHeader = (props) => {
-  const { display_stats, display_menu, inGame } = props;
+  const { display_stats, display_menu, inGame, navigate } = props;
 
   return (
     <motion.header

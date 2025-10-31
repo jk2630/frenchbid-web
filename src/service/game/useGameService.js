@@ -20,14 +20,43 @@ export const useGameService = (navigate) => {
         console.log("Game created Successfully");
         createGame(res.data);
       } else if (res.status >= 400 && res.status < 500) {
-        console.error(res.data);
+        console.error(res.data.message);
         throw new Error(res.data?.message);
       }
-    } catch (err) {
-      console.log("Game creation failed. err:", err);
-      throw new Error("createGame: Game creation failed");
+    } catch (error) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response?.data?.message);
+      }
+      console.log("error:", error);
+      throw new Error("Game creation failed. Try again");
     }
   };
 
-  return { createGameAPI };
+  const fetchGamesAPI = async (fetchGamesRequest) => {
+    const queryParams = {
+      ...(fetchGamesRequest.playerId && {
+        owner: fetchGamesRequest.playerName,
+      }),
+      ...(fetchGamesRequest.status && { status: fetchGamesRequest.status }),
+      ...(fetchGamesRequest.page && { page: fetchGamesRequest.page }),
+      ...(fetchGamesRequest.size && { size: fetchGamesRequest.size }),
+    };
+
+    try {
+      const res = await axiosClient.get("/games", { params: queryParams });
+      if (res.status == 200) return res.data;
+      else if (res.status >= 400 && res.status < 500) {
+        console.error(res.data.message);
+        throw new Error(res.data?.message);
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response?.data?.message);
+      }
+      console.log("error:", error);
+      throw new Error("Game creation failed. Try again");
+    }
+  };
+
+  return { createGameAPI, fetchGamesAPI };
 };
