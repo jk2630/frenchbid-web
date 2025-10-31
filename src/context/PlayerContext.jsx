@@ -12,6 +12,16 @@ const defaultPlayer = {
   password: "",
 };
 
+const getInitialStateOfPlayer = () => {
+  const playerFromStorage = localStorage.getItem("player");
+  return playerFromStorage ? JSON.parse(playerFromStorage) : defaultPlayer;
+};
+
+const getInitialStateOfAccessToken = () => {
+  const accessTokenFromStorage = localStorage.getItem("accessToken");
+  return accessTokenFromStorage ? JSON.parse(accessTokenFromStorage) : null;
+};
+
 export const PlayerContext = createContext({
   player: defaultPlayer,
   updatePlayer: () => {},
@@ -23,8 +33,16 @@ export const PlayerContext = createContext({
 });
 
 const PlayerContextProvider = ({ children }) => {
-  const [player, setPlayer] = useState(defaultPlayer);
-  const [accessToken, setAccessToken] = useState(null);
+  const [player, setPlayer] = useState(getInitialStateOfPlayer);
+  const [accessToken, setAccessToken] = useState(getInitialStateOfAccessToken);
+
+  useEffect(() => {
+    localStorage.setItem("player", JSON.stringify(player));
+  }, [player]);
+
+  useEffect(() => {
+    localStorage.setItem("accessToken", JSON.stringify(accessToken));
+  }, [accessToken]);
 
   const updatePlayer = (newPlayer) =>
     setPlayer((prev) => ({ ...prev, ...newPlayer }));
@@ -38,7 +56,7 @@ const PlayerContextProvider = ({ children }) => {
   };
 
   const logoutPlayer = () => {
-    updatePlayer(defaultPlayer);
+    clearPlayer();
     setAccessToken(null);
   };
 

@@ -16,13 +16,43 @@ const defaultGameData = {
   playerHoldingCards: {},
 };
 
+const getInitialStateOfGameInfo = () => {
+  const gameInfoFromStorage = localStorage.getItem("gameInfo");
+  return gameInfoFromStorage
+    ? JSON.parse(gameInfoFromStorage)
+    : defaultGameInfo;
+};
+
+const getInitialStateOfGamePlayers = () => {
+  const gamePlayersFromStorage = localStorage.getItem("gamePlayers");
+  return gamePlayersFromStorage ? JSON.parse(gamePlayersFromStorage) : [];
+};
+
+const getInitialStateOfGameRounds = () => {
+  const gameRoundsFromStorage = localStorage.getItem("gameRounds");
+  return gameRoundsFromStorage ? JSON.parse(gameRoundsFromStorage) : [];
+};
+
+const getInitialStateOfGameData = () => {
+  const gameDataFromStorage = localStorage.getItem("gameData");
+  return gameDataFromStorage
+    ? JSON.parse(gameDataFromStorage)
+    : defaultGameData;
+};
+
+const getInitialStateOfScores = () => {
+  const scoresFromStorage = localStorage.getItem("scores");
+  return scoresFromStorage ? JSON.parse(scoresFromStorage) : {};
+};
+
 export const GameContext = createContext({
   gameInfo: defaultGameInfo,
   gamePlayers: [],
   gameRounds: [],
   gameData: defaultGameData,
-  scores: [],
+  scores: {},
   createGame: () => {},
+  resetGame: () => {},
   updateGameInfo: () => {},
   addPlayer: () => {},
   removePlayer: () => {},
@@ -32,12 +62,32 @@ export const GameContext = createContext({
 });
 
 export const GameContextProvider = ({ children }) => {
-  const [gameInfo, setGameInfo] = useState(defaultGameInfo);
+  const [gameInfo, setGameInfo] = useState(getInitialStateOfGameInfo);
 
-  const [gamePlayers, setGamePlayers] = useState([]);
-  const [gameRounds, setGameRounds] = useState([]);
-  const [scores, setScores] = useState([]);
-  const [gameData, setGameData] = useState(defaultGameData);
+  const [gamePlayers, setGamePlayers] = useState(getInitialStateOfGamePlayers);
+  const [gameRounds, setGameRounds] = useState(getInitialStateOfGameRounds);
+  const [scores, setScores] = useState(getInitialStateOfScores);
+  const [gameData, setGameData] = useState(getInitialStateOfGameData);
+
+  useEffect(() => {
+    localStorage.setItem("gameInfo", JSON.stringify(gameInfo));
+  }, [gameInfo]);
+
+  useEffect(() => {
+    localStorage.setItem("gamePlayers", JSON.stringify(gamePlayers));
+  }, [gamePlayers]);
+
+  useEffect(() => {
+    localStorage.setItem("gameRounds", JSON.stringify(gameRounds));
+  }, [gameRounds]);
+
+  useEffect(() => {
+    localStorage.setItem("scores", JSON.stringify(scores));
+  }, [scores]);
+
+  useEffect(() => {
+    localStorage.setItem("gameData", JSON.stringify(gameData));
+  }, [gameData]);
 
   const createGame = (game) => {
     // game info
@@ -68,8 +118,16 @@ export const GameContextProvider = ({ children }) => {
     });
   };
 
+  const resetGame = () => {
+    setGameInfo(defaultGameInfo);
+    setGamePlayers([]);
+    setGameRounds([]);
+    setGameData(defaultGameData);
+    setScores({});
+  };
+
   const addPlayer = (player) => {
-    setGamePlayers((prev) => ({ ...prev, player }));
+    setGamePlayers((prev) => [...prev, ...player]);
   };
   const removePlayer = (playerId) => {
     setGamePlayers(gamePlayers.filter((player) => player.id != playerId));
@@ -80,7 +138,7 @@ export const GameContextProvider = ({ children }) => {
   };
 
   const updateGameData = (newValues) => {
-    setGameData((prev) => ({ ...prev, newValues }));
+    setGameData((prev) => ({ ...prev, ...newValues }));
   };
 
   const updateGameRound = (roundId, newValues) => {
@@ -92,7 +150,7 @@ export const GameContextProvider = ({ children }) => {
   };
 
   const updateScores = (newScores) => {
-    setScores((prev) => ({ ...prev, newScores }));
+    setScores((prev) => ({ ...prev, ...newScores }));
   };
 
   return (
@@ -104,6 +162,7 @@ export const GameContextProvider = ({ children }) => {
         gameData,
         scores,
         createGame,
+        resetGame,
         updateGameInfo,
         addPlayer,
         removePlayer,
