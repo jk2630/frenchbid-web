@@ -1,35 +1,19 @@
-import { useEffect, useState, useRef } from "react"; // Import useState
+import { useEffect, useState, useRef, useCallback } from "react"; // Import useState
 import FBFooter from "../components/ui/FBFooter";
 import FBHeader from "../components/ui/FBHeader";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import useGame from "../hooks/useGame";
 import { GameContext } from "../context/GameContext";
 import { useGameService } from "../service/game/useGameService";
-
-// --- Mock Data: Changed 'round' to 'isPublic' ---
-const activeGames = [
-  { id: "g1", name: "Player A's Game", players: "3/6", isPublic: true },
-  { id: "g2", name: "The French Connection", players: "5/6", isPublic: false },
-  { id: "g3", name: "High Bidders Only", players: "2/6", isPublic: true },
-  { id: "g4", name: "Test Game 4", players: "4/6", isPublic: true },
-  { id: "g5", name: "Another Lobby", players: "1/6", isPublic: false },
-  { id: "g6", name: "Sample Game", players: "3/7", isPublic: true },
-  { id: "g7", name: "Waiting Room", players: "1/6", isPublic: true },
-];
-// --- Removed availablePlayers array ---
-
-// --- Mock Password "Database" ---
-// In a real app, you'd check this on the backend
-const gamePasswords = {
-  g2: "nothing",
-  g5: "nothing",
-};
+import usePlayer from "../hooks/usePlayer";
+import { PlayerContext } from "../context/PlayerContext";
 
 const PAGE_SIZE = 10;
 
 const Dashboard = () => {
-  // --- State for Modal and Navigation ---
   const navigate = useNavigate();
+
+  // states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
   const [passwordInput, setPasswordInput] = useState("");
@@ -40,45 +24,91 @@ const Dashboard = () => {
   const [activeGamesLoading, setActiveGamesLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [activeGamesMessage, setActiveGamesMessage] = useState("");
+  const [searchGamesKey, setSearchGamesKey] = useState(null);
 
   // game context data
-  const { gameInfo, updateGameInfo } = useGame(GameContext);
+  const { gameInfo, updateGameInfo, createGame } = useGame(GameContext);
+
+  // player context data
+  const { player } = usePlayer(PlayerContext);
 
   // client hook
-  const { createGameAPI, fetchGamesAPI } = useGameService(navigate);
+  const {
+    createGameAPI,
+    fetchGamesAPI,
+    joinPlayerAPI,
+    getGamesBySearchKeyAPI,
+  } = useGameService(navigate);
 
   const hasFetched = useRef(false);
 
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+  const fetchActiveGames = useCallback(async () => {
     const fetchGamesRequest = {
       status: "GAME_CREATED",
       page: page,
       size: PAGE_SIZE,
     };
+
+    try {
+      const res = await fetchGamesAPI(fetchGamesRequest);
+      setActiveGamesList(res);
+    } catch (error) {
+      console.error("fetchActiveGames:", error);
+      setActiveGamesMessage(error.message);
+    }
+  }, [page, fetchGamesAPI]);
+
+  const getGamesByKey = useCallback(async () => {
+    try {
+      const res = await getGamesBySearchKeyAPI(searchGamesKey);
+      setActiveGamesList(res);
+    } catch (error) {
+      console.error("getGamesByKey:", error);
+      setActiveGamesList([]);
+    }
+  }, [searchGamesKey, getGamesBySearchKeyAPI]);
+
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true; // this should set to false when page changes.
     setActiveGamesLoading(true);
     setActiveGamesMessage("");
-    const fetchActiveGames = async () => {
-      try {
-        const res = await fetchGamesAPI(fetchGamesRequest);
-        setActiveGamesList(res);
-      } catch (error) {
-        console.error("handleCreateGame:", error);
-        setActiveGamesMessage(error.message);
-      }
-    };
     fetchActiveGames();
-  }, [page]);
+  }, [page, fetchActiveGames]);
+
+  useEffect(() => {
+    if (searchGamesKey == null) return;
+    const delayDebounce = setTimeout(() => {
+      if (searchGamesKey.length < 3) {
+        fetchActiveGames();
+        return;
+      }
+      getGamesByKey();
+    }, 400);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchGamesKey, fetchActiveGames, getGamesByKey]);
 
   // --- Click Handler for Join Button ---
-  const handleJoinClick = (game) => {
-    if (game.isPublic) {
-      // Public game: just navigate
-      //   navigate(`/game/${game.id}`);
-      navigate("/game");
+  const handleJoinClick = async (game) => {
+    if (!game.isPrivate) {
+      // join this player to this game.
+      try {
+        const joinPlayerRequest = {
+          gameId: game.id,
+          playerId: player.id,
+        };
+        const res = await joinPlayerAPI(joinPlayerRequest);
+        createGame(res);
+        console.log(player.playerName + " has joined game: " + game.gameName);
+        navigate("/lobby");
+      } catch (error) {
+        console.error("handleJoinClick:", error);
+        alert(
+          error.message ? error.message : "unable to join this game. try again"
+        );
+      }
     } else {
-      // Private game: open modal
       setSelectedGame(game);
       setPasswordInput(""); // Clear old password
       setPasswordError(""); // Clear old error
@@ -87,17 +117,27 @@ const Dashboard = () => {
   };
 
   // --- Handler for Password Form Submit ---
-  const handlePasswordSubmit = (event) => {
+  const handlePasswordSubmit = async (event) => {
     event.preventDefault();
-
-    // Check if password matches our mock database
-    if (gamePasswords[selectedGame.id] === passwordInput) {
-      // Success: close modal and navigate
+    if (selectedGame.password === passwordInput) {
+      try {
+        const joinPlayerRequest = {
+          gameId: selectedGame.id,
+          playerId: player.id,
+        };
+        const res = await joinPlayerAPI(joinPlayerRequest);
+        createGame(res);
+        console.log(
+          player.playerName + " has joined game: " + selectedGame.gameName
+        );
+        navigate("/lobby");
+      } catch (error) {
+        console.error("handlePasswordSubmit:", error);
+        alert("unable to join this game. try again");
+      }
       setIsModalOpen(false);
-      //   navigate(`/game/${selectedGame.id}`);
-      navigate("/game");
+      navigate("/lobby");
     } else {
-      // Failure: show error
       setPasswordError("Incorrect password. Please try again.");
     }
   };
@@ -113,6 +153,9 @@ const Dashboard = () => {
     setMessage("");
     try {
       await createGameAPI(gameRequest);
+      console.log(
+        player.playerName + " has created the game " + gameInfo.gameName
+      );
       navigate("/lobby");
     } catch (error) {
       console.error("handleCreateGame:", error);
@@ -127,6 +170,12 @@ const Dashboard = () => {
     updateGameInfo({
       [name]: type === "checkbox" ? checked : value,
     });
+  };
+
+  const handleSearchGamesKey = (event) => {
+    const { value } = event.target;
+    hasFetched.current = false;
+    setSearchGamesKey(value);
   };
 
   // --- Function to close the modal ---
@@ -149,14 +198,43 @@ const Dashboard = () => {
 
         {/* --- Content area --- */}
         <div className="flex-1 flex flex-col md:flex-row gap-8 w-full max-w-7xl mx-auto px-4 sm:px-8 py-6">
-          {/* --- Left Panel: Active Games --- */}
-          <div className="flex-1 bg-gray-800/80 p-6 rounded-lg shadow-xl border border-teal-500/50 flex flex-col h-[calc(100vh-220px)]">
-            <h2 className="text-3xl text-amber-300 mb-6 font-semibold border-b-2 border-amber-400 pb-2">
-              <i className="fas fa-list-ul mr-3 text-teal-300"></i>
-              Active Games
-            </h2>
+          {/* --- Left Panel: Active Games (MODIFIED) --- */}
+          <div className="md:flex-1 bg-gray-800/80 p-6 rounded-lg shadow-xl border border-teal-500/50 flex flex-col md:h-[calc(100vh-220px)]">
+            {/* --- Panel Header: Title, Search, Refresh (MODIFIED) --- */}
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 border-b-2 border-amber-400 pb-2">
+              {/* Title */}
+              <h2 className="text-sxl lg:text-3xl text-amber-300 font-semibold shrink-0">
+                <i className="fas fa-list-ul mr-3 text-teal-300"></i>
+                Active Games
+              </h2>
 
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              {/* Controls: Search + Refresh */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search games..."
+                    value={searchGamesKey == null ? "" : searchGamesKey}
+                    onChange={handleSearchGamesKey}
+                    className="w-full p-2 pl-8 bg-gray-700/90 rounded-md border border-gray-600 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-sm"
+                  />
+                  <i className="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                {/* Refresh Button */}
+                <button
+                  // onClick={handleRefresh} // You'll need an onClick handler
+                  className="shrink-0 bg-gray-700/90 hover:bg-gray-600/90 text-teal-300 font-bold p-2.5 rounded-md shadow-md transition-all border border-gray-600 hover:border-teal-500"
+                  aria-label="Refresh active games"
+                >
+                  <i className="fas fa-sync-alt"></i>
+                </button>
+              </div>
+            </div>
+
+            {/* --- Scrolling Container (Unchanged from previous) --- */}
+            <div className="min-h-56 max-h-80 md:flex-1 md:max-h-none overflow-y-auto space-y-4 pr-2">
               {activeGamesList.map((game) => (
                 <div
                   key={game.id}
@@ -198,7 +276,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* --- Right Panel: Create Game --- */}
+          {/* --- Right Panel: Create Game (Unchanged) --- */}
           <div className="md:max-w-md w-full flex flex-col gap-8 justify-center">
             <div className="bg-gray-800/80 p-6 rounded-lg shadow-xl border border-teal-500/50">
               <h2 className="text-3xl text-amber-300 mb-6 font-semibold border-b-2 border-amber-400 pb-2">
@@ -285,12 +363,12 @@ const Dashboard = () => {
                 &times;
               </button>
               <h2 className="text-2xl font-bold text-amber-300">
-                {selectedGame.name}
+                {selectedGame.gameName}
               </h2>
               <div className="flex gap-4 text-gray-300 text-sm mt-1 mb-6">
                 <span>
                   <i className="fas fa-users text-yellow-400 mr-1"></i>{" "}
-                  {selectedGame.players}
+                  {selectedGame.players.length}
                 </span>
                 <span className="flex items-center gap-1 text-red-400">
                   <i className="fas fa-lock text-xs"></i> Private Game
