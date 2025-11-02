@@ -1,16 +1,27 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import FBHeader from "../components/ui/FBHeader";
 import FBFooter from "../components/ui/FBFooter";
 import logo from "../assets/fantacy_bg.jpg"; // Make sure this path is correct
 import FindPlayers from "../components/ui/FBSearchPlayers"; // <-- Import the new component
+import useGame from "../hooks/useGame";
+import { GameContext } from "../context/GameContext";
+import usePlayer from "../hooks/usePlayer";
+import { PlayerContext } from "../context/PlayerContext";
+import { useGameService } from "../service/game/useGameService";
 
 // --- Mock Data ---
 const currentUser = { id: "p1", name: "PlayerOne (Host)" };
 
 const Lobby = () => {
-  const { gameId } = useParams();
+  // Contexts
+  const { gameInfo, gamePlayers, removePlayer } = useGame(GameContext);
+  const { player } = usePlayer(PlayerContext);
+
   const navigate = useNavigate();
+
+  // services
+  const { removePlayerAPI } = useGameService(navigate);
 
   // --- State Definitions ---
   const [lobbyPlayers, setLobbyPlayers] = useState([currentUser]);
@@ -22,7 +33,9 @@ const Lobby = () => {
     if (playerToInvite) {
       if (!lobbyPlayers.find((p) => p.id === playerToInvite.id)) {
         setLobbyPlayers((prevPlayers) => [...prevPlayers, playerToInvite]);
-        console.log(`(Lobby) Added ${playerToInvite.name} to game ${gameId}`);
+        console.log(
+          `(Lobby) Added ${playerToInvite.name} to game ${gameInfo.id}`
+        );
       }
       setPlayerToInvite(null); // Reset state
     }
@@ -33,20 +46,28 @@ const Lobby = () => {
   /**
    * Removes a player from the lobby.
    */
-  const handleRemovePlayer = (playerToRemove) => {
-    if (playerToRemove.id === currentUser.id) return;
-    setLobbyPlayers(lobbyPlayers.filter((p) => p.id !== playerToRemove.id));
+  const handleRemovePlayer = async (playerToRemove) => {
+    try {
+      await removePlayerAPI({
+        gameId: gameInfo.id,
+        playerId: playerToRemove.id,
+      });
+      removePlayer(playerToRemove.id);
+    } catch (error) {
+      console.error("handleRemovePlayer:", error);
+      alert(error.message || "Player remove failed. try again");
+    }
   };
 
   /**
    * Checks player count and navigates to the game.
    */
   const handleStartGame = () => {
-    if (lobbyPlayers.length < 2) {
+    if (gamePlayers.length < 2) {
       alert("You need at least 2 players to start a game.");
       return;
     }
-    console.log(`Starting game ${gameId}...`);
+    console.log(`Starting game ${gameInfo.id}...`);
     navigate(`/game`);
   };
 
@@ -63,7 +84,12 @@ const Lobby = () => {
 
       {/* --- Main Content --- */}
       <main className="relative z-20 min-h-screen md:h-screen flex flex-col justify-between">
-        <FBHeader display_stats={false} display_menu={true} inGame={false} />
+        <FBHeader
+          display_stats={false}
+          display_menu={true}
+          inGame={true}
+          navigate={navigate}
+        />
 
         <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-8 flex flex-col md:flex-row gap-8 md:overflow-hidden">
           {/* --- Left Panel: Players in Lobby --- */}
@@ -73,28 +99,40 @@ const Lobby = () => {
               Players in Lobby
             </h2>
             <p className="text-sm text-gray-400 mb-4">
-              Game ID:{" "}
-              <span className="font-mono text-amber-300">{gameId}</span>
+              Game:{" "}
+              <span className="font-mono text-amber-300">
+                {gameInfo.gameName}
+              </span>
+            </p>
+            <p className="text-sm text-gray-400 mb-4">
+              Host:{" "}
+              <span className="font-mono text-amber-300">{gameInfo.owner}</span>
             </p>
 
             {/* Scrollable list of players in the lobby */}
             <div className="space-y-3 flex-1 overflow-y-auto pr-2">
-              {lobbyPlayers.map((player) => (
-                <div
-                  key={player.id}
-                  className="bg-gray-700/90 p-3 rounded-lg flex justify-between items-center"
-                >
-                  <span className="text-lg text-white">{player.name}</span>
-                  {player.id !== currentUser.id && (
-                    <button
-                      onClick={() => handleRemovePlayer(player)}
-                      className="bg-red-600 hover:bg-red-500 text-white font-semibold py-1 px-4 rounded-lg transition-colors"
+              {gamePlayers.map(
+                (lobbyPlayer) =>
+                  lobbyPlayer.playerName !== gameInfo.owner && (
+                    <div
+                      key={lobbyPlayer.id}
+                      className="bg-gray-700/90 p-3 rounded-lg flex justify-between items-center"
                     >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <span className="text-lg text-white">
+                        {lobbyPlayer.playerName}
+                      </span>
+                      {(lobbyPlayer.playerName !== player.playerName ||
+                        lobbyPlayer.playerName == gameInfo.owner) && (
+                        <button
+                          onClick={() => handleRemovePlayer(lobbyPlayer)}
+                          className="bg-red-600 hover:bg-red-500 text-white font-semibold py-1 px-4 rounded-lg transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  )
+              )}
             </div>
 
             {/* Start Game Button */}
@@ -104,18 +142,12 @@ const Lobby = () => {
             >
               Start Game
             </button>
-            <Link
-              to="/"
-              className="text-center text-gray-300 hover:text-white mt-4"
-            >
-              Cancel and return to Dashboard
-            </Link>
           </div>
 
           {/* --- Right Panel: Find Players --- */}
           <div className="md:max-w-md w-full flex flex-col">
             {/* Pass the 'setPlayerToInvite' state setter function as a prop */}
-            <FindPlayers setPlayerToInvite={setPlayerToInvite} />
+            <FindPlayers navigate={navigate} />
           </div>
         </div>
 

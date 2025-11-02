@@ -38,7 +38,7 @@ const FBHeader = (props) => {
         )}
         {display_menu && (
           <span className="flex items-center gap-2 mx-4 md:mx-12">
-            <FBMenuDropDown inGame={inGame} />
+            <FBMenuDropDown inGame={inGame} navigate={navigate} />
           </span>
         )}
       </div>
