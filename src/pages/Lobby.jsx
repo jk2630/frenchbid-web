@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import FBHeader from "../components/ui/FBHeader";
 import FBFooter from "../components/ui/FBFooter";
@@ -15,37 +15,35 @@ const currentUser = { id: "p1", name: "PlayerOne (Host)" };
 
 const Lobby = () => {
   // Contexts
-  const { gameInfo, gamePlayers, removePlayer } = useGame(GameContext);
+  const { gameInfo, gamePlayers, createGame, removePlayer } =
+    useGame(GameContext);
   const { player } = usePlayer(PlayerContext);
 
   const navigate = useNavigate();
 
   // services
-  const { removePlayerAPI } = useGameService(navigate);
+  const { removePlayerAPI, fetchGameAPI } = useGameService(navigate);
 
-  // --- State Definitions ---
-  const [lobbyPlayers, setLobbyPlayers] = useState([currentUser]);
-  const [playerToInvite, setPlayerToInvite] = useState(null);
-
-  // --- Effect Hook ---
-  // Watches 'playerToInvite' state. When it changes, this code runs.
-  useEffect(() => {
-    if (playerToInvite) {
-      if (!lobbyPlayers.find((p) => p.id === playerToInvite.id)) {
-        setLobbyPlayers((prevPlayers) => [...prevPlayers, playerToInvite]);
-        console.log(
-          `(Lobby) Added ${playerToInvite.name} to game ${gameInfo.id}`
-        );
+  const fetchGameByGameId = useCallback(
+    async (gameId) => {
+      try {
+        const res = await fetchGameAPI(gameId);
+        createGame(res);
+      } catch (error) {
+        console.error("fetchGameByGameId:", error);
+        alert(error.message || "Failed to fetch your game. try again later.");
       }
-      setPlayerToInvite(null); // Reset state
+    },
+    [fetchGameAPI]
+  );
+
+  useEffect(() => {
+    const gameId = gameInfo.id;
+    if (gameId !== null || gameId !== "") {
+      fetchGameByGameId(gameId);
     }
-  }, [playerToInvite, lobbyPlayers]); // Dependencies
+  }, [fetchGameByGameId]);
 
-  // --- Plain JavaScript Functions (Handlers) ---
-
-  /**
-   * Removes a player from the lobby.
-   */
   const handleRemovePlayer = async (playerToRemove) => {
     try {
       await removePlayerAPI({
