@@ -4,17 +4,48 @@ import { Link } from "react-router";
 import usePlayer from "../../hooks/usePlayer";
 import { PlayerContext } from "../../context/PlayerContext";
 import playerService from "../../service/player/playerService";
+import useGame from "../../hooks/useGame";
+import { GameContext } from "../../context/GameContext";
+import { useGameService } from "../../service/game/useGameService";
 
 const FBMenuDropDown = (props) => {
-  const { inGame } = props;
+  const { inGame, navigate } = props;
   const [isActive, setIsActive] = useState(false);
 
+  // Contexts
   const { player, logoutPlayer } = usePlayer(PlayerContext);
+  const { gameInfo, resetGame } = useGame(GameContext);
+
+  // Services
+  const { removePlayerAPI, updateGameAPI } = useGameService(navigate);
 
   const handleLogoutPlayer = () => {
     const playerName = player.playerName;
     logoutPlayer();
     playerService.logoutPlayer(playerName);
+  };
+
+  const handleLeaveGame = async () => {
+    try {
+      const removePlayerRequest = {
+        gameId: gameInfo.id,
+        playerId: player.id,
+      };
+      await removePlayerAPI(removePlayerRequest);
+      if (gameInfo.owner === player.playerName) {
+        const updateGameRequest = {
+          gameData: {
+            gameState: "GAME_CANCELLED",
+          },
+        };
+        await updateGameAPI(gameInfo.id, updateGameRequest);
+      }
+      navigate("/dashboard");
+    } catch (error) {
+      console.log("handleLeaveGame:", error);
+    } finally {
+      resetGame();
+    }
   };
 
   return (
@@ -34,9 +65,9 @@ const FBMenuDropDown = (props) => {
               About
             </Link>
             {inGame && (
-              <Link to="/dashboard" className="p-2">
+              <button onClick={handleLeaveGame} className="cursor-pointer p-2">
                 Leave game
-              </Link>
+              </button>
             )}
             <Link to="/login" onClick={handleLogoutPlayer} className="p-2">
               Logout

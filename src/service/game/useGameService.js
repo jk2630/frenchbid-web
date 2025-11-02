@@ -88,6 +88,26 @@ export const useGameService = (navigate) => {
     [navigate]
   );
 
+  const removePlayerAPI = useCallback(async (removePlayerRequest) => {
+    try {
+      const res = await axiosClient.delete(
+        `/games/${removePlayerRequest.gameId}/players/${removePlayerRequest.playerId}`,
+        null
+      );
+      if (res.status == 200) return res.data;
+      else if (res.status >= 400 && res.status < 500) {
+        console.error(res.data.message);
+        throw new Error(res.data?.message);
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response?.data?.message);
+      }
+      console.log("error:", error);
+      throw new Error("Game creation failed. Try again");
+    }
+  });
+
   const getGamesBySearchKeyAPI = useCallback(
     async (searchKey) => {
       try {
@@ -108,10 +128,32 @@ export const useGameService = (navigate) => {
     [navigate]
   );
 
+  const updateGameAPI = useCallback(
+    async (gameId, updateGameRequest) => {
+      try {
+        const res = await axiosClient.put(`games/${gameId}`, updateGameRequest);
+        if (res.status == 200) return res.data;
+        if (res.status >= 400 && res.status < 500) {
+          console.error(res.data.message);
+          throw new Error(res.data?.message);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          throw new Error(error.response?.data?.message);
+        }
+        console.log("error:", error);
+        throw new Error("Get games by searchKey failed. Try again");
+      }
+    },
+    [navigate]
+  );
+
   return {
     createGameAPI,
     fetchGamesAPI,
     joinPlayerAPI,
+    removePlayerAPI,
+    updateGameAPI,
     getGamesBySearchKeyAPI,
   };
 };

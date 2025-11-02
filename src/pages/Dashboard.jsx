@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [message, setMessage] = useState("");
   const [activeGamesMessage, setActiveGamesMessage] = useState("");
   const [searchGamesKey, setSearchGamesKey] = useState(null);
+  const [refreshToggle, setRefreshToggle] = useState(false);
 
   // game context data
   const { gameInfo, updateGameInfo, createGame } = useGame(GameContext);
@@ -87,7 +88,7 @@ const Dashboard = () => {
     }, 400);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchGamesKey, fetchActiveGames, getGamesByKey]);
+  }, [searchGamesKey, fetchActiveGames, getGamesByKey, refreshToggle]);
 
   // --- Click Handler for Join Button ---
   const handleJoinClick = async (game) => {
@@ -130,13 +131,12 @@ const Dashboard = () => {
         console.log(
           player.playerName + " has joined game: " + selectedGame.gameName
         );
+        setIsModalOpen(false);
         navigate("/lobby");
       } catch (error) {
         console.error("handlePasswordSubmit:", error);
-        alert("unable to join this game. try again");
+        alert(error.message || "unable to join this game. try again");
       }
-      setIsModalOpen(false);
-      navigate("/lobby");
     } else {
       setPasswordError("Incorrect password. Please try again.");
     }
@@ -194,7 +194,12 @@ const Dashboard = () => {
 
       {/* --- Main Content --- */}
       <main className="relative z-20 flex flex-col flex-1">
-        <FBHeader display_stats={false} display_menu={true} inGame={false} />
+        <FBHeader
+          display_stats={false}
+          display_menu={true}
+          inGame={false}
+          navigate={navigate}
+        />
 
         {/* --- Content area --- */}
         <div className="flex-1 flex flex-col md:flex-row gap-8 w-full max-w-7xl mx-auto px-4 sm:px-8 py-6">
@@ -224,7 +229,7 @@ const Dashboard = () => {
 
                 {/* Refresh Button */}
                 <button
-                  // onClick={handleRefresh} // You'll need an onClick handler
+                  onClick={() => setRefreshToggle((prev) => !prev)}
                   className="shrink-0 bg-gray-700/90 hover:bg-gray-600/90 text-teal-300 font-bold p-2.5 rounded-md shadow-md transition-all border border-gray-600 hover:border-teal-500"
                   aria-label="Refresh active games"
                 >
