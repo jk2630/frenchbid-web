@@ -29,6 +29,12 @@ const Lobby = () => {
       try {
         const res = await fetchGameAPI(gameId);
         createGame(res);
+        if (
+          res.gameData.gameState === "BIDDING" ||
+          res.gameData.gameState == "IN_PROGRESS"
+        ) {
+          navigate("/game");
+        }
       } catch (error) {
         console.error("fetchGameByGameId:", error);
         alert(error.message || "Failed to fetch your game. try again later.");

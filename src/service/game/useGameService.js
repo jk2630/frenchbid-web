@@ -59,8 +59,8 @@ export const useGameService = (navigate) => {
   const fetchGamesAPI = useCallback(
     async (fetchGamesRequest) => {
       const queryParams = {
-        ...(fetchGamesRequest.playerId && {
-          owner: fetchGamesRequest.playerName,
+        ...(fetchGamesRequest.owner && {
+          owner: fetchGamesRequest.owner,
         }),
         ...(fetchGamesRequest.status && { status: fetchGamesRequest.status }),
         ...(fetchGamesRequest.page != null && { page: fetchGamesRequest.page }),
