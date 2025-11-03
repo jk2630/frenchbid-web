@@ -3,11 +3,12 @@ import { PlayerContext } from "../../context/PlayerContext";
 import { useAxiosClient } from "../../hooks/axiosClient";
 import useGame from "../../hooks/useGame";
 import usePlayer from "../../hooks/usePlayer";
+import { GameContext } from "../../context/GameContext";
 
 export const useGameService = (navigate) => {
   const axiosClient = useAxiosClient(navigate);
-  const { player } = usePlayer(PlayerContext);
-  const { createGame } = useGame();
+  const { player, updatePlayer } = usePlayer(PlayerContext);
+  const { createGame } = useGame(GameContext);
 
   const createGameAPI = useCallback(
     async (gameRequest) => {
@@ -21,6 +22,7 @@ export const useGameService = (navigate) => {
         if (res.status == 200 || res.status == 201) {
           console.log("Game created Successfully");
           createGame(res.data);
+          updatePlayer({ isPlaying: true });
         } else if (res.status >= 400 && res.status < 500) {
           console.error(res.data.message);
           throw new Error(res.data?.message);
