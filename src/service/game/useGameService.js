@@ -36,22 +36,25 @@ export const useGameService = (navigate) => {
     [navigate]
   );
 
-  const fetchGameAPI = useCallback(async (gameId) => {
-    try {
-      const res = await axiosClient.get(`/games/${gameId}`);
-      if (res.status == 200) return res.data;
-      else if (res.status >= 400 && res.status < 500) {
-        console.error(res.data.message);
-        throw new Error(res.data?.message);
+  const fetchGameAPI = useCallback(
+    async (gameId) => {
+      try {
+        const res = await axiosClient.get(`/games/${gameId}`);
+        if (res.status == 200) return res.data;
+        else if (res.status >= 400 && res.status < 500) {
+          console.error(res.data.message);
+          throw new Error(res.data?.message);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          throw new Error(error.response?.data?.message);
+        }
+        console.log("error:", error);
+        throw new Error("Game creation failed. Try again");
       }
-    } catch (error) {
-      if (error.response?.data?.message) {
-        throw new Error(error.response?.data?.message);
-      }
-      console.log("error:", error);
-      throw new Error("Game creation failed. Try again");
-    }
-  });
+    },
+    [navigate]
+  );
 
   const fetchGamesAPI = useCallback(
     async (fetchGamesRequest) => {
