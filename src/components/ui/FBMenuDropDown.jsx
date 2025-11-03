@@ -40,11 +40,11 @@ const FBMenuDropDown = (props) => {
         };
         await updateGameAPI(gameInfo.id, updateGameRequest);
       }
-      navigate("/dashboard");
     } catch (error) {
       console.log("handleLeaveGame:", error);
     } finally {
       resetGame();
+      navigate("/dashboard");
     }
   };
 

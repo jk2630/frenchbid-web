@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import FBHeader from "../components/ui/FBHeader";
 import FBFooter from "../components/ui/FBFooter";
@@ -10,19 +10,24 @@ import usePlayer from "../hooks/usePlayer";
 import { PlayerContext } from "../context/PlayerContext";
 import { useGameService } from "../service/game/useGameService";
 
-// --- Mock Data ---
-const currentUser = { id: "p1", name: "PlayerOne (Host)" };
-
 const Lobby = () => {
+  const navigate = useNavigate();
+
   // Contexts
   const { gameInfo, gamePlayers, createGame, removePlayer } =
     useGame(GameContext);
   const { player } = usePlayer(PlayerContext);
 
-  const navigate = useNavigate();
-
   // services
-  const { removePlayerAPI, fetchGameAPI } = useGameService(navigate);
+  const { removePlayerAPI, fetchGameAPI, initGameAPI } =
+    useGameService(navigate);
+
+  // States
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // ref's
+  const hasFetched = useRef();
 
   const fetchGameByGameId = useCallback(
     async (gameId) => {
@@ -44,6 +49,8 @@ const Lobby = () => {
   );
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     const gameId = gameInfo.id;
     if (gameId !== null || gameId !== "") {
       fetchGameByGameId(gameId);
@@ -66,13 +73,25 @@ const Lobby = () => {
   /**
    * Checks player count and navigates to the game.
    */
-  const handleStartGame = () => {
+  const handleStartGame = async () => {
     if (gamePlayers.length < 2) {
-      alert("You need at least 2 players to start a game.");
+      setMessage("Need atleast 2 players");
       return;
     }
-    console.log(`Starting game ${gameInfo.id}...`);
-    navigate(`/game`);
+
+    try {
+      setLoading(true);
+      setMessage("");
+
+      const res = await initGameAPI(gameInfo.id, null);
+      createGame(res);
+      navigate(`/game`);
+    } catch (error) {
+      console.error("handleStartGame:", error);
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- Main Render ---
@@ -140,11 +159,18 @@ const Lobby = () => {
             </div>
 
             {/* Start Game Button */}
+            {message && (
+              <div className="text-md font-normal text-red-400 ml-1">
+                {message}
+              </div>
+            )}
             <button
               onClick={handleStartGame}
-              className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg text-xl transition-transform hover:scale-105 mt-6"
+              className={`w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg text-xl transition-transform hover:scale-105 ${
+                message ? "mt-1" : "mt-6"
+              }`}
             >
-              Start Game
+              {loading ? "Creating Game" : "Start Game"}
             </button>
           </div>
 

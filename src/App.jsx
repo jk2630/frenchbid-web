@@ -1,7 +1,7 @@
-import LoginPage from "./pages/LoginPage";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
-  return <LoginPage />;
+  return <Dashboard />;
 };
 
 export default App;

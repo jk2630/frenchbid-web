@@ -4,10 +4,13 @@ import FBHeader from "./FBHeader";
 import FBPlayers from "./FBPlayers";
 import FBFooter from "./FBFooter";
 import Card from "../Card";
+import { useNavigate } from "react-router-dom";
 
 // --- Main Game Table Component ---
 // This component assembles the entire UI.
 const GameTable = () => {
+  const navigate = useNavigate();
+
   const initialCards = [
     { rank: "7", suit: "clubs" },
     { rank: "A", suit: "clubs" },
@@ -33,7 +36,12 @@ const GameTable = () => {
 
   return (
     <div className="bg-teal-700 min-h-screen flex flex-col items-center">
-      <FBHeader display_stats={true} display_menu={true} inGame={true} />
+      <FBHeader
+        display_stats={true}
+        display_menu={true}
+        inGame={true}
+        navigate={navigate}
+      />
       <main className="w-full grow flex flex-col items-center justify-between p-2">
         <div className="flex flex-col w-full lg:flex-row items-center gap-4">
           <FBPlayers />

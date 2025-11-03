@@ -64,10 +64,8 @@ const Dashboard = () => {
       status: "GAME_CREATED",
       owner: player.playerName,
     };
-    console.log(fetchGameRequest);
     try {
       const res = await fetchGamesAPI(fetchGameRequest);
-      console.log(res[0]);
       const gamePlayers = res[0].players;
       for (var i = 0; i < gamePlayers.length; i++) {
         if (gamePlayers[i].playerName === player.playerName) {
@@ -168,14 +166,32 @@ const Dashboard = () => {
 
   const handleCreateGame = async (event) => {
     event.preventDefault();
+    if (gameInfo.gameName == null || gameInfo.gameName === "") {
+      alert(
+        "yevadaina game name empty pedthada thu!! manchiga oka game name petti start chei."
+      );
+      setMessage("Game Name cannot be empty");
+      return;
+    }
+    if (
+      gameInfo.isPrivate &&
+      (gameInfo.password == null || gameInfo.password.length < 5)
+    ) {
+      console.log(
+        "Password should be greater than 4 and non empty for private game"
+      );
+      setMessage("Password is invalid");
+      return;
+    }
     const gameRequest = {
       gameName: gameInfo.gameName,
       password: gameInfo.password,
       isPrivate: gameInfo.isPrivate,
     };
-    setLoading(true);
-    setMessage("");
+
     try {
+      setLoading(true);
+      setMessage("");
       await createGameAPI(gameRequest);
       console.log(
         player.playerName + " has created the game " + gameInfo.gameName
