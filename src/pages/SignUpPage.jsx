@@ -70,7 +70,7 @@ const SignUpPage = () => {
                 htmlFor="firstName"
                 className="text-base md:text-sm font-normal"
               >
-                Player name
+                First name
               </label>
               <FBInputBox
                 type="text"

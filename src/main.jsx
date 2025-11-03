@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 import GameTable from "./components/ui/GameTable.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -20,11 +21,13 @@ const router = createBrowserRouter(
   [
     {
       path: "/",
-      element: <App />,
+      element: <ProtectedRoute />,
+      children: [{ index: true, element: <App /> }],
     },
     {
       path: "/game",
-      element: <GameTable />,
+      element: <ProtectedRoute />,
+      children: [{ index: true, element: <GameTable /> }],
     },
     {
       path: "/game/rules",
@@ -40,11 +43,13 @@ const router = createBrowserRouter(
     },
     {
       path: "/dashboard",
-      element: <Dashboard />,
+      element: <ProtectedRoute />,
+      children: [{ index: true, element: <Dashboard /> }],
     },
     {
       path: "/lobby",
-      element: <Lobby />,
+      element: <ProtectedRoute />,
+      children: [{ index: true, element: <Lobby /> }],
     },
     {
       path: "/about",

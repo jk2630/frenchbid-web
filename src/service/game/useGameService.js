@@ -59,8 +59,8 @@ export const useGameService = (navigate) => {
   const fetchGamesAPI = useCallback(
     async (fetchGamesRequest) => {
       const queryParams = {
-        ...(fetchGamesRequest.playerId && {
-          owner: fetchGamesRequest.playerName,
+        ...(fetchGamesRequest.owner && {
+          owner: fetchGamesRequest.owner,
         }),
         ...(fetchGamesRequest.status && { status: fetchGamesRequest.status }),
         ...(fetchGamesRequest.page != null && { page: fetchGamesRequest.page }),
@@ -168,6 +168,29 @@ export const useGameService = (navigate) => {
     [navigate]
   );
 
+  const initGameAPI = useCallback(
+    async (gameId, initGameRequest) => {
+      try {
+        const res = await axiosClient.post(
+          `games/${gameId}/init`,
+          initGameRequest
+        );
+        if (res.status == 200) return res.data;
+        if (res.status >= 400 && res.status < 500) {
+          console.error(res.data.message);
+          throw new Error(res.data?.message);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          throw new Error(error.response?.data?.message);
+        }
+        console.log("error:", error);
+        throw new Error("Game initialization failed. Try again");
+      }
+    },
+    [navigate]
+  );
+
   return {
     createGameAPI,
     fetchGameAPI,
@@ -176,5 +199,6 @@ export const useGameService = (navigate) => {
     removePlayerAPI,
     updateGameAPI,
     getGamesBySearchKeyAPI,
+    initGameAPI,
   };
 };

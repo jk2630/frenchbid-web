@@ -59,6 +59,24 @@ const Dashboard = () => {
     }
   }, [page, fetchGamesAPI]);
 
+  const fetchCurrentPlayerGame = useCallback(async () => {
+    const fetchGameRequest = {
+      status: "GAME_CREATED",
+      owner: player.playerName,
+    };
+    try {
+      const res = await fetchGamesAPI(fetchGameRequest);
+      const gamePlayers = res[0].players;
+      for (var i = 0; i < gamePlayers.length; i++) {
+        if (gamePlayers[i].playerName === player.playerName) {
+          createGame(res[0]);
+          alert("You have an active game. See you there!!");
+          navigate("/lobby");
+        }
+      }
+    } catch (error) {}
+  }, [player, fetchGamesAPI]);
+
   const getGamesByKey = useCallback(async () => {
     try {
       const res = await getGamesBySearchKeyAPI(searchGamesKey);
@@ -74,20 +92,24 @@ const Dashboard = () => {
     hasFetched.current = true; // this should set to false when page changes.
     setActiveGamesLoading(true);
     setActiveGamesMessage("");
-    fetchActiveGames();
+    fetchCurrentPlayerGame();
+    fetchActiveGames().finally(() => setActiveGamesLoading(false));
   }, [page, fetchActiveGames]);
 
   useEffect(() => {
     if (searchGamesKey == null) return;
+    setActiveGamesLoading(true);
     const delayDebounce = setTimeout(() => {
       if (searchGamesKey.length < 3) {
-        fetchActiveGames();
+        fetchActiveGames().finally(() => setActiveGamesLoading(false));
         return;
       }
-      getGamesByKey();
+      getGamesByKey().finally(() => setActiveGamesLoading(false));
     }, 400);
 
-    return () => clearTimeout(delayDebounce);
+    return () => {
+      clearTimeout(delayDebounce);
+    };
   }, [searchGamesKey, fetchActiveGames, getGamesByKey, refreshToggle]);
 
   // --- Click Handler for Join Button ---
@@ -144,14 +166,32 @@ const Dashboard = () => {
 
   const handleCreateGame = async (event) => {
     event.preventDefault();
+    if (gameInfo.gameName == null || gameInfo.gameName === "") {
+      alert(
+        "yevadaina game name empty pedthada thu!! manchiga oka game name petti start chei."
+      );
+      setMessage("Game Name cannot be empty");
+      return;
+    }
+    if (
+      gameInfo.isPrivate &&
+      (gameInfo.password == null || gameInfo.password.length < 5)
+    ) {
+      console.log(
+        "Password should be greater than 4 and non empty for private game"
+      );
+      setMessage("Password is invalid");
+      return;
+    }
     const gameRequest = {
       gameName: gameInfo.gameName,
       password: gameInfo.password,
       isPrivate: gameInfo.isPrivate,
     };
-    setLoading(true);
-    setMessage("");
+
     try {
+      setLoading(true);
+      setMessage("");
       await createGameAPI(gameRequest);
       console.log(
         player.playerName + " has created the game " + gameInfo.gameName
@@ -238,6 +278,11 @@ const Dashboard = () => {
               </div>
             </div>
 
+            {activeGamesLoading && (
+              <div className="flex justify-center">
+                <h1 className="text-xl text-teal-400">Loading...</h1>
+              </div>
+            )}
             {/* --- Scrolling Container (Unchanged from previous) --- */}
             <div className="min-h-56 max-h-80 md:flex-1 md:max-h-none overflow-y-auto space-y-4 pr-2">
               {activeGamesList.map((game) => (
