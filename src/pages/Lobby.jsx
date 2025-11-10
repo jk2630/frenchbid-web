@@ -164,14 +164,24 @@ const Lobby = () => {
                 {message}
               </div>
             )}
-            <button
-              onClick={handleStartGame}
-              className={`w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg text-xl transition-transform hover:scale-105 ${
-                message ? "mt-1" : "mt-6"
-              }`}
-            >
-              {loading ? "Creating Game" : "Start Game"}
-            </button>
+            {player.playerName == gameInfo.owner ? (
+              <button
+                onClick={handleStartGame}
+                className={`w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg text-xl transition-transform hover:scale-105 ${
+                  message ? "mt-1" : "mt-6"
+                }`}
+              >
+                {loading ? "Creating Game" : "Start Game"}
+              </button>
+            ) : (
+              <h1
+                className={`w-full bg-green-600 text-white text-center font-bold py-3 px-4 rounded-lg shadow-lg text-xl ${
+                  message ? "mt-1" : "mt-6"
+                }`}
+              >
+                Wait for Host to Start
+              </h1>
+            )}
           </div>
 
           {/* --- Right Panel: Find Players --- */}
