@@ -97,11 +97,16 @@ const Dashboard = () => {
   }, [page, fetchActiveGames]);
 
   useEffect(() => {
-    if (searchGamesKey == null) return;
+    if (searchGamesKey == null && !refreshToggle) return;
     setActiveGamesLoading(true);
     const delayDebounce = setTimeout(() => {
-      if (searchGamesKey.length < 3) {
+      if (
+        refreshToggle ||
+        (searchGamesKey != null && searchGamesKey.length < 3)
+      ) {
         fetchActiveGames().finally(() => setActiveGamesLoading(false));
+        setSearchGamesKey("");
+        setRefreshToggle(false);
         return;
       }
       getGamesByKey().finally(() => setActiveGamesLoading(false));
@@ -269,7 +274,7 @@ const Dashboard = () => {
 
                 {/* Refresh Button */}
                 <button
-                  onClick={() => setRefreshToggle((prev) => !prev)}
+                  onClick={() => setRefreshToggle(true)}
                   className="shrink-0 bg-gray-700/90 hover:bg-gray-600/90 text-teal-300 font-bold p-2.5 rounded-md shadow-md transition-all border border-gray-600 hover:border-teal-500"
                   aria-label="Refresh active games"
                 >
