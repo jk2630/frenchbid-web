@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [activeGamesMessage, setActiveGamesMessage] = useState("");
   const [searchGamesKey, setSearchGamesKey] = useState(null);
   const [refreshToggle, setRefreshToggle] = useState(false);
+  const [playerFetched, setPlayerFetched] = useState(false);
 
   // game context data
   const { gameInfo, updateGameInfo, createGame } = useGame(GameContext);
@@ -74,7 +75,11 @@ const Dashboard = () => {
           navigate("/lobby");
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("fetchCurrentPlayerGame:", error);
+    } finally {
+      setPlayerFetched(true);
+    }
   }, [player, fetchGamesAPI]);
 
   const getGamesByKey = useCallback(async () => {
@@ -89,24 +94,34 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (hasFetched.current) return;
-    hasFetched.current = true; // this should set to false when page changes.
-    setActiveGamesLoading(true);
-    setActiveGamesMessage("");
+    hasFetched.current = true;
+    if (playerFetched) return;
     fetchCurrentPlayerGame();
-    fetchActiveGames().finally(() => setActiveGamesLoading(false));
-  }, [page, fetchActiveGames]);
+  }, [page]);
 
   useEffect(() => {
-    if (searchGamesKey == null && !refreshToggle) return;
+    if (!playerFetched) return;
+    setActiveGamesLoading(true);
+    setActiveGamesMessage("");
+    fetchActiveGames().finally(() => setActiveGamesLoading(false));
+  }, [fetchActiveGames, playerFetched]);
+
+  useEffect(() => {
+    if (!refreshToggle) return;
+    setActiveGamesLoading(true);
+
+    fetchActiveGames().finally(() => setActiveGamesLoading(false));
+    setSearchGamesKey("");
+    setRefreshToggle(false);
+  }, [refreshToggle]);
+
+  useEffect(() => {
+    if (searchGamesKey == null) return;
     setActiveGamesLoading(true);
     const delayDebounce = setTimeout(() => {
-      if (
-        refreshToggle ||
-        (searchGamesKey != null && searchGamesKey.length < 3)
-      ) {
+      if (searchGamesKey != null && searchGamesKey.length < 3) {
         fetchActiveGames().finally(() => setActiveGamesLoading(false));
         setSearchGamesKey("");
-        setRefreshToggle(false);
         return;
       }
       getGamesByKey().finally(() => setActiveGamesLoading(false));
@@ -115,7 +130,7 @@ const Dashboard = () => {
     return () => {
       clearTimeout(delayDebounce);
     };
-  }, [searchGamesKey, fetchActiveGames, getGamesByKey, refreshToggle]);
+  }, [searchGamesKey, fetchActiveGames, getGamesByKey]);
 
   // --- Click Handler for Join Button ---
   const handleJoinClick = async (game) => {

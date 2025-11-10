@@ -19,7 +19,7 @@ const getInitialStateOfPlayer = () => {
 
 const getInitialStateOfAccessToken = () => {
   const accessTokenFromStorage = localStorage.getItem("accessToken");
-  return accessTokenFromStorage ? JSON.parse(accessTokenFromStorage) : null;
+  return accessTokenFromStorage || null;
 };
 
 export const PlayerContext = createContext({
@@ -28,21 +28,28 @@ export const PlayerContext = createContext({
   clearPlayer: () => {},
   loginPlayer: () => {},
   logoutPlayer: () => {},
-  accessToken: null,
+  getAccessToken: () => {},
   setAccessToken: () => {},
 });
 
 const PlayerContextProvider = ({ children }) => {
   const [player, setPlayer] = useState(getInitialStateOfPlayer);
-  const [accessToken, setAccessToken] = useState(getInitialStateOfAccessToken);
+
+  const getAccessToken = () => {
+    return getInitialStateOfAccessToken();
+  };
+
+  const setAccessToken = (token) => {
+    if (token) {
+      localStorage.setItem("accessToken", token);
+    } else {
+      localStorage.removeItem("accessToken");
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("player", JSON.stringify(player));
   }, [player]);
-
-  useEffect(() => {
-    localStorage.setItem("accessToken", JSON.stringify(accessToken));
-  }, [accessToken]);
 
   const updatePlayer = (newPlayer) =>
     setPlayer((prev) => ({ ...prev, ...newPlayer }));
@@ -68,7 +75,7 @@ const PlayerContextProvider = ({ children }) => {
         clearPlayer,
         loginPlayer,
         logoutPlayer,
-        accessToken,
+        getAccessToken,
         setAccessToken,
       }}
     >

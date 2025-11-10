@@ -6,7 +6,7 @@ import playerService from "../service/player/playerService";
 const BASE_URL = import.meta.env.VITE_API_BASE_ENDPOINT;
 
 export const useAxiosClient = (navigate) => {
-  const { player, accessToken, setAccessToken, logoutPlayer } =
+  const { player, getAccessToken, setAccessToken, logoutPlayer } =
     useContext(PlayerContext);
 
   const axiosClient = axios.create({
@@ -21,9 +21,7 @@ export const useAxiosClient = (navigate) => {
       return config;
     }
 
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
+    config.headers.Authorization = `Bearer ${getAccessToken()}`;
     return config;
   });
 
