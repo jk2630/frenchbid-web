@@ -23,6 +23,9 @@ const GameTable = () => {
     { rank: "2", suit: "diamonds" },
     { rank: "Q", suit: "spades" },
     { rank: "5", suit: "hearts" },
+    { rank: "2", suit: "diamonds" },
+    { rank: "Q", suit: "spades" },
+    { rank: "5", suit: "hearts" },
   ];
 
   const [myHand, setMyHand] = useState(initialCards);

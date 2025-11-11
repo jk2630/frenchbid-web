@@ -9,7 +9,7 @@ const defaultGameInfo = {
 };
 
 const defaultGameData = {
-  gameState: "GAME_CREATED",
+  gameState: null,
   roundNumber: 0,
   currentPlayerTurnIndex: 0,
   dealerIndex: 0,

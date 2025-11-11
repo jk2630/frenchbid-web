@@ -67,10 +67,10 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <GameContextProvider>
-      <PlayerContextProvider>
+    <PlayerContextProvider>
+      <GameContextProvider>
         <RouterProvider router={router} />
-      </PlayerContextProvider>
-    </GameContextProvider>
+      </GameContextProvider>
+    </PlayerContextProvider>
   </StrictMode>
 );
