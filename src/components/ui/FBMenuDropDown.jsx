@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FBMenuButton from "../FBMenuButton";
 import { Link } from "react-router";
 import usePlayer from "../../hooks/usePlayer";
@@ -17,7 +17,7 @@ const FBMenuDropDown = (props) => {
   const { gameInfo, resetGame } = useGame(GameContext);
 
   // Services
-  const { removePlayerAPI, updateGameAPI } = useGameService(navigate);
+  const { removePlayerAPI, leaveGameAPI } = useGameService(navigate);
 
   const handleLogoutPlayer = () => {
     const playerName = player.playerName;
@@ -25,26 +25,27 @@ const FBMenuDropDown = (props) => {
     playerService.logoutPlayer(playerName);
   };
 
+  useEffect(() => {
+    if (gameInfo.id == null || gameInfo.id === "") {
+      navigate("/dashboard");
+    }
+  }, [gameInfo.id]);
+
   const handleLeaveGame = async () => {
     try {
       const removePlayerRequest = {
         gameId: gameInfo.id,
         playerId: player.id,
       };
-      await removePlayerAPI(removePlayerRequest);
       if (gameInfo.owner === player.playerName) {
-        const updateGameRequest = {
-          gameData: {
-            gameState: "GAME_CANCELLED",
-          },
-        };
-        await updateGameAPI(gameInfo.id, updateGameRequest);
+        await leaveGameAPI(gameInfo.id);
+        return;
       }
+      await removePlayerAPI(removePlayerRequest);
     } catch (error) {
       console.log("handleLeaveGame:", error);
     } finally {
       resetGame();
-      navigate("/dashboard");
     }
   };
 

@@ -68,16 +68,17 @@ const Dashboard = () => {
     try {
       const res = await fetchGamesAPI(fetchGameRequest);
       const gamePlayers = res[0].players;
+      let isActiveGameFetched = false;
       for (var i = 0; i < gamePlayers.length; i++) {
         if (gamePlayers[i].playerName === player.playerName) {
+          isActiveGameFetched = true;
           createGame(res[0]);
           alert("You have an active game. See you there!!");
-          navigate("/lobby");
         }
       }
+      if (!isActiveGameFetched) setPlayerFetched(true);
     } catch (error) {
       console.error("fetchCurrentPlayerGame:", error);
-    } finally {
       setPlayerFetched(true);
     }
   }, [player, fetchGamesAPI]);
@@ -92,20 +93,30 @@ const Dashboard = () => {
     }
   }, [searchGamesKey, getGamesBySearchKeyAPI]);
 
+  // navigate to lobby
+  useEffect(() => {
+    if (gameInfo.id != null && gameInfo.id !== "") {
+      navigate("/lobby");
+    }
+  }, [gameInfo.id, navigate]);
+
+  // player active game
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
     if (playerFetched) return;
     fetchCurrentPlayerGame();
-  }, [page]);
+  }, [fetchCurrentPlayerGame]);
 
+  // fetch active games
   useEffect(() => {
     if (!playerFetched) return;
     setActiveGamesLoading(true);
     setActiveGamesMessage("");
     fetchActiveGames().finally(() => setActiveGamesLoading(false));
-  }, [fetchActiveGames, playerFetched]);
+  }, [fetchActiveGames, playerFetched, page]);
 
+  // refresh games
   useEffect(() => {
     if (!refreshToggle) return;
     setActiveGamesLoading(true);
@@ -115,6 +126,7 @@ const Dashboard = () => {
     setRefreshToggle(false);
   }, [refreshToggle]);
 
+  // search games by key
   useEffect(() => {
     if (searchGamesKey == null) return;
     setActiveGamesLoading(true);
@@ -144,7 +156,6 @@ const Dashboard = () => {
         const res = await joinPlayerAPI(joinPlayerRequest);
         createGame(res);
         console.log(player.playerName + " has joined game: " + game.gameName);
-        navigate("/lobby");
       } catch (error) {
         console.error("handleJoinClick:", error);
         alert(
@@ -174,7 +185,6 @@ const Dashboard = () => {
           player.playerName + " has joined game: " + selectedGame.gameName
         );
         setIsModalOpen(false);
-        navigate("/lobby");
       } catch (error) {
         console.error("handlePasswordSubmit:", error);
         alert(error.message || "unable to join this game. try again");
@@ -216,7 +226,6 @@ const Dashboard = () => {
       console.log(
         player.playerName + " has created the game " + gameInfo.gameName
       );
-      navigate("/lobby");
     } catch (error) {
       console.error("handleCreateGame:", error);
       setMessage(error.message);

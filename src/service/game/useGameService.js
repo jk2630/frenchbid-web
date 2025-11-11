@@ -170,6 +170,26 @@ export const useGameService = (navigate) => {
     [navigate]
   );
 
+  const leaveGameAPI = useCallback(
+    async (gameId) => {
+      try {
+        const res = await axiosClient.post(`/games/${gameId}`);
+        if (res.status == 200) return res.data;
+        if (res.status >= 400 && res.status < 500) {
+          console.error(res.data.message);
+          throw new Error(res.data?.message);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          throw new Error(error.response?.data?.message);
+        }
+        console.log("error:", error);
+        throw new Error("Leave Game failed. Try again");
+      }
+    },
+    [navigate]
+  );
+
   const initGameAPI = useCallback(
     async (gameId, initGameRequest) => {
       try {
@@ -200,6 +220,7 @@ export const useGameService = (navigate) => {
     joinPlayerAPI,
     removePlayerAPI,
     updateGameAPI,
+    leaveGameAPI,
     getGamesBySearchKeyAPI,
     initGameAPI,
   };
