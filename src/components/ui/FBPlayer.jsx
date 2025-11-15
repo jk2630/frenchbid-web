@@ -5,13 +5,15 @@ import { GameContext } from "../../context/GameContext";
 
 // --- Single Player Component ---
 // Opponent cards are not interactive.
-const FBPlayer = ({ playerName, id }) => {
+const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
   const { gameRounds, gameData } = useGame(GameContext);
   const currentRoundIndex = gameData.roundNumber - 1;
   const currentRound = gameRounds[currentRoundIndex];
   const subRoundIndex = currentRound.subRoundIndex;
   const cardsPlayedByPlayers =
     currentRound.subRounds[subRoundIndex].cardsPlayed;
+
+  const isCurrentPlayerTurn = id === currentPlayerTurn;
 
   return (
     <motion.div
@@ -21,17 +23,30 @@ const FBPlayer = ({ playerName, id }) => {
         visible: { opacity: 1, y: 0 },
       }}
     >
-      <div className="flex flex-col items-center bg-teal-600/50 p-2 rounded-lg border border-teal-400">
+      <div
+        className={`
+    flex flex-col items-center bg-teal-600/50 p-2 rounded-lg
+    ${
+      isCurrentPlayerTurn
+        ? "border-2 border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.7)]"
+        : "border border-teal-500 opacity-75"
+    }
+  `}
+      >
         <i className="fas fa-user text-teal-100 text-2xl"></i>
-        <span className="text-white font-semibold text-sm mt-1">
+        <span
+          className={`font-semibold text-sm mt-1 ${
+            isCurrentPlayerTurn ? "text-yellow-300" : "text-white"
+          }`}
+        >
           {playerName}
         </span>
         {/* <span className="text-teal-200 text-xs">{playerId}</span> */}
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (
         <Card
-          rank="7"
-          suit="clubs"
+          rank="SEVEN"
+          suit="CLUBS"
           width="w-20"
           height="h-28"
           isInteractive={false}
