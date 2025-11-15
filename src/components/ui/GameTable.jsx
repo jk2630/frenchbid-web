@@ -1,35 +1,31 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FBHeader from "./FBHeader";
 import FBPlayers from "./FBPlayers";
 import FBFooter from "./FBFooter";
 import Card from "../Card";
 import { useNavigate } from "react-router-dom";
+import useGame from "../../hooks/useGame";
+import { GameContext } from "../../context/GameContext";
+import { reOrderPlayers } from "../../utils/gameTableUtils";
+import usePlayer from "../../hooks/usePlayer";
+import { PlayerContext } from "../../context/PlayerContext";
 
 // --- Main Game Table Component ---
 // This component assembles the entire UI.
 const GameTable = () => {
   const navigate = useNavigate();
 
-  const initialCards = [
-    { rank: "7", suit: "clubs" },
-    { rank: "A", suit: "clubs" },
-    { rank: "K", suit: "hearts" },
-    { rank: "10", suit: "diamonds" },
-    { rank: "Q", suit: "spades" },
-    { rank: "5", suit: "hearts" },
-    { rank: "2", suit: "diamonds" },
-    { rank: "2", suit: "diamonds" },
-    { rank: "2", suit: "diamonds" },
-    { rank: "Q", suit: "spades" },
-    { rank: "5", suit: "hearts" },
-    { rank: "2", suit: "diamonds" },
-    { rank: "Q", suit: "spades" },
-    { rank: "5", suit: "hearts" },
-  ];
+  const { gamePlayers, gameData, setGamePlayers } = useGame(GameContext);
+  const { player } = usePlayer(PlayerContext);
 
-  const [myHand, setMyHand] = useState(initialCards);
+  const [myHand, setMyHand] = useState(gameData.playerHoldingCards[player.id]);
   const [playedCard, setPlayedCard] = useState(null);
+
+  useEffect(() => {
+    const newPlayers = reOrderPlayers(gamePlayers, player.id);
+    setGamePlayers(newPlayers);
+  }, []);
 
   const handlePlayCard = (cardToPlay, index) => {
     if (playedCard) return; // Prevent playing more than one card
@@ -44,6 +40,8 @@ const GameTable = () => {
         display_menu={true}
         inGame={true}
         navigate={navigate}
+        playersCount={gamePlayers.length}
+        round={gameData.roundNumber}
       />
       <main className="w-full grow flex flex-col items-center justify-between p-2">
         <div className="flex flex-col w-full lg:flex-row items-center gap-4">
@@ -56,10 +54,12 @@ const GameTable = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <h3 className="text-white font-bold text-center">Game Info</h3>
+          {" "}
+          <h3 className="text-white font-bold text-center">Game Info</h3>{" "}
           <p className="text-teal-200 text-xs text-center mt-2">
-            Bids, Scores, and other details can be displayed here.
-          </p>
+            {" "}
+            Bids, Scores, and other details can be displayed here.{" "}
+          </p>{" "}
         </motion.div>
 
         {/* Player's Hand Section */}

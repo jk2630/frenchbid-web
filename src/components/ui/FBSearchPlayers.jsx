@@ -22,7 +22,6 @@ const FBSearchPlayers = (props) => {
   const getPlayersByKey = useCallback(async () => {
     try {
       const res = await getPlayersBySearchKeyAPI(searchTerm);
-      console.log("available players:", res);
       if (res.length === 0) {
         setMessage(PLAYERS_NOT_FOUND);
       } else {
