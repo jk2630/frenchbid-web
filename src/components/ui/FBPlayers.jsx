@@ -1,12 +1,10 @@
-import { GameContext } from "../../context/GameContext";
-import useGame from "../../hooks/useGame";
 import FBPlayer from "./FBPlayer";
 import { motion } from "framer-motion";
 
 // --- Opponent Players Container ---
 // Arranges all the opponent players in a responsive, wrapping row.
-const FBPlayers = () => {
-  const { gamePlayers } = useGame(GameContext);
+const FBPlayers = (props) => {
+  const { currentPlayerTurn, displayPlayers } = props;
   // const players = Array.from({ length: 5 }, (_, i) => ({
   //     playerName: `player ${i + 1}`,
   //     playerId: `ID_${1001 + i}`,
@@ -30,8 +28,15 @@ const FBPlayers = () => {
         initial="hidden"
         animate="visible"
       >
-        {gamePlayers.map(
-          (player, index) => index != 0 && <FBPlayer key={index} {...player} />
+        {displayPlayers.map(
+          (player, index) =>
+            index != 0 && (
+              <FBPlayer
+                key={index}
+                {...player}
+                currentPlayerTurn={currentPlayerTurn}
+              />
+            )
         )}
       </motion.div>
     </div>
