@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import RequireGame from "./components/RequireGame.jsx"; // <-- 1. Import your new bouncer
 
 import GameTable from "./components/ui/GameTable.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -16,23 +17,11 @@ import Lobby from "./pages/Lobby.jsx";
 import PlayerContextProvider from "./context/PlayerContext.jsx";
 import { GameContextProvider } from "./context/GameContext.jsx";
 
-// routes
+// --- 2. Routes are now restructured ---
 const router = createBrowserRouter(
   [
-    {
-      path: "/",
-      element: <ProtectedRoute />,
-      children: [{ index: true, element: <App /> }],
-    },
-    {
-      path: "/game",
-      element: <ProtectedRoute />,
-      children: [{ index: true, element: <GameTable /> }],
-    },
-    {
-      path: "/game/rules",
-      element: <GameRules />,
-    },
+    // --- Public Routes ---
+    // These routes do NOT require a user to be logged in
     {
       path: "/login",
       element: <LoginPage />,
@@ -42,22 +31,50 @@ const router = createBrowserRouter(
       element: <SignUpPage />,
     },
     {
-      path: "/dashboard",
-      element: <ProtectedRoute />,
-      children: [{ index: true, element: <Dashboard /> }],
-    },
-    {
-      path: "/lobby",
-      element: <ProtectedRoute />,
-      children: [{ index: true, element: <Lobby /> }],
-    },
-    {
       path: "/about",
       element: <AboutPage />,
     },
     {
       path: "/contact",
       element: <ContactPage />,
+    },
+    {
+      path: "/game/rules",
+      element: <GameRules />,
+    },
+
+    // --- Protected Routes ---
+    // All routes inside this "children" array are protected by <ProtectedRoute />
+    // This is Bouncer #1: "Are you logged in?"
+    {
+      element: <ProtectedRoute />,
+      children: [
+        {
+          path: "/",
+          element: <App />,
+        },
+        {
+          path: "/dashboard",
+          element: <Dashboard />,
+        },
+        {
+          path: "/lobby",
+          element: <Lobby />,
+        },
+
+        // --- Nested Game Route ---
+        // This is Bouncer #2: "Are you in a game?"
+        // A user must be logged in AND have a game to see this
+        {
+          element: <RequireGame />,
+          children: [
+            {
+              path: "/game",
+              element: <GameTable />,
+            },
+          ],
+        },
+      ],
     },
   ]
   // {

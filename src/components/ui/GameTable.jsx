@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from "framer-motion"; // <-- Added AnimatePresence
-import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FBHeader from "./FBHeader";
 import FBPlayers from "./FBPlayers";
 import FBFooter from "./FBFooter";
@@ -10,64 +10,163 @@ import { GameContext } from "../../context/GameContext";
 import { getAntiClockwisePlayers } from "../../utils/gameTableUtils";
 import usePlayer from "../../hooks/usePlayer";
 import { PlayerContext } from "../../context/PlayerContext";
+import { usePlayerActionService } from "../../service/playerAction/usePlayerActionService";
+import { useGameService } from "../../service/game/useGameService";
 
 // --- Main Game Table Component ---
 // This component assembles the entire UI.
 const GameTable = () => {
   const navigate = useNavigate();
 
-  const { gamePlayers, gameData } = useGame(GameContext);
+  // --- 1. HOOKS (Context) ---
+  const { gameInfo, gamePlayers, gameData, gameRounds, createGame } =
+    useGame(GameContext);
   const { player } = usePlayer(PlayerContext);
 
-  const [myHand, setMyHand] = useState(gameData.playerHoldingCards[player.id]);
+  // --- 2. HOOKS (Services) ---
+  const { playerBidAPI, playerSubRoundAPI } = usePlayerActionService(navigate);
+  const { fetchGameAPI } = useGameService(navigate);
+
+  // --- 3. HOOKS (State) ---
+  // Initialize state with safe, empty values.
+  // This prevents crashes if gameData is null on first render.
+  const [myHand, setMyHand] = useState([]); // FIX: Initialize as empty array
   const [playedCard, setPlayedCard] = useState(null);
   const [selectedBid, setSelectedBid] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
 
-  const gameState = gameData.gameState;
-  const isBidding = gameState === "BIDDING";
-  const currentPlayerTurn =
-    gamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
+  // --- 4. HOOKS (Ref) ---
+  const hasFetched = useRef();
 
-  const displayPlayers = useMemo(() => {
-    if (!gamePlayers || gamePlayers.length === 0) {
-      return [];
-    }
-    // Your utility function creates a new array in the correct order
-    return getAntiClockwisePlayers(gamePlayers, player.id);
-  }, [gamePlayers, player]); // Dependencies
-
-  if (!gamePlayers || gamePlayers.length === 0) {
-    navigate("/dashboard");
+  // --- 5. COMPREHENSIVE GUARD CLAUSE ---
+  // This must come AFTER all hooks.
+  // It checks for all data. If anything is missing
+  // (e.g., after leaving a game), it returns null and
+  // prevents the component from crashing.
+  if (
+    !gameInfo ||
+    !gamePlayers ||
+    gamePlayers.length === 0 ||
+    !gameData ||
+    !player
+  ) {
+    // We can safely navigate here if we want, or just let other
+    // components (like FBHeader) handle it.
+    // navigate("/dashboard");
     return null;
   }
 
-  const handlePlayCard = (cardToPlay, index) => {
-    if (playedCard) return; // Prevent playing more than one card
-    setPlayedCard(cardToPlay);
-    setMyHand((currentHand) => currentHand.filter((_, i) => i !== index));
+  // --- 6. GAME VARIABLES (Now safe to calculate) ---
+  const gameState = gameData.gameState;
+  const isBidding = gameState === "BIDDING";
+  const isInProgress = gameState === "IN_PROGRESS";
+  const isGameOver = gameState === "GAME_OVER";
+
+  const currentPlayerTurn =
+    gamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
+
+  const currentRound = gameRounds.at(gameData.roundNumber - 1);
+  const subRoundIndex = currentRound.subRoundIndex;
+
+  // We calculate these here but set them in an effect.
+  const winnerName = currentRound.subRounds.at(subRoundIndex).winnerId;
+  const cardsPlayed = currentRound.subRounds.at(subRoundIndex).cardsPlayed;
+  const currentPlayedCard = cardsPlayed?.[player.id] ?? null;
+  const currentPlayerHand = gameData.playerHoldingCards[player.id];
+
+  // --- 7. HOOK (Memo for displayPlayers) ---
+  const displayPlayers = useMemo(() => {
+    return getAntiClockwisePlayers(gamePlayers, player.id);
+  }, [gamePlayers, player]);
+
+  // --- 8. HOOKS (Effects for State Synchronization) ---
+
+  // FIX: This effect synchronizes `myHand` state with the context
+  useEffect(() => {
+    setMyHand(currentPlayerHand);
+  }, [currentPlayerHand]); // Dependency: the hand from gameData
+
+  // FIX: This effect synchronizes `playedCard` state with the context
+  useEffect(() => {
+    setPlayedCard(currentPlayedCard);
+  }, [currentPlayedCard]); // Dependency: the card from cardsPlayed
+
+  // --- 9. HOOKS (Effects for API calls) ---
+  const fetchCurrentGame = useCallback(async () => {
+    try {
+      setInitialLoading(true);
+      const res = await fetchGameAPI(gameInfo.id);
+      createGame(res);
+    } catch (error) {
+      console.error("fetchCurrentGame:", error);
+      alert(error.message || "unable to fetch current game. try again");
+    } finally {
+      setInitialLoading(false);
+    }
+  }, [fetchGameAPI, gameInfo, createGame]); // Added createGame to dependency array
+
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    fetchCurrentGame();
+  }, [fetchCurrentGame]); // Dependency is now the memoized function
+
+  // --- 10. HELPER FUNCTIONS ---
+  const isValidPlayedCard = () => {
+    return playedCard != null && Object.keys(playedCard).length > 0;
   };
 
-  // --- 3. Added Bid Submit Handler ---
-  const handleBidSubmit = () => {
-    if (selectedBid) {
-      console.log(`Bid submitted: ${selectedBid}`);
-      // TODO: Add your logic here to send the bid to the game context or server.
-      // e.g., submitBid(selectedBid);
-
-      // This will reset the selection. The panel will "close"
-      // when the gameData.gameState prop changes from "BIDDING"
-      // (which should happen after your context processes the bid).
-      setSelectedBid(null);
+  const handlePlayCard = async (cardToPlay, index) => {
+    // This logic is now fine
+    if (!isInProgress || isValidPlayedCard() || currentPlayerTurn !== player.id)
+      return;
+    setPlayedCard(cardToPlay);
+    setMyHand((currentHand) => currentHand.filter((_, i) => i !== index));
+    const playerSubRoundRequest = {
+      gameId: gameInfo.id,
+      playerCard: cardToPlay,
+    };
+    try {
+      const res = await playerSubRoundAPI(playerSubRoundRequest);
+      createGame(res);
+    } catch (error) {
+      console.error("handlePlayCard:", error);
+      // Revert state on error
+      setPlayedCard(currentPlayedCard); // Revert to what context says
+      setMyHand(currentPlayerHand); // Revert to what context says
+      alert(error.message || "unable to play this card. try again");
     }
   };
 
-  // --- 4. Added Animation Variants ---
+  const handleBidSubmit = async () => {
+    if (selectedBid != null) {
+      console.log(`Bid submitted: ${selectedBid}`);
+      const playerBidRequest = {
+        gameId: gameInfo.id,
+        playerBid: selectedBid,
+      };
+      setLoading(true);
+      try {
+        const res = await playerBidAPI(playerBidRequest);
+        createGame(res);
+      } catch (error) {
+        console.error("handleBidSubmit:", error);
+        alert(error.message || "unable to place the bid. try again");
+      } finally {
+        setLoading(false);
+        setSelectedBid(null);
+      }
+    }
+  };
+
   const contentVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   };
 
+  // --- 11. RETURN STATEMENT (Unchanged, as requested) ---
   return (
     <div className="bg-teal-700 min-h-screen flex flex-col items-center">
       <FBHeader
@@ -88,33 +187,38 @@ const GameTable = () => {
 
         {/* --- 5. MODIFIED BIDDING/INFO PANEL --- */}
         <motion.div
-          className="w-full lg:w-2xl bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col justify-center items-center m-1 p-4 min-h-5]" // <-- 6. Changed h-54/p-2
+          className="w-full lg:w-2xl bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col justify-center items-center m-1 p-4 min-h-52" // Fixed typo
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
         >
-          <AnimatePresence mode="wait">
-            {isBidding ? (
-              // ### BIDDING STATE ###
-              <motion.div
-                key="bidding-ui"
-                className="w-full flex flex-col items-center"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <h3 className="text-white font-bold text-center text-lg mb-4">
-                  Place Your Bid
-                </h3>
+          {initialLoading ? (
+            <h1 className="text-lg font-medium text-white">
+              Fetching Game Data...
+            </h1>
+          ) : (
+            <AnimatePresence mode="wait">
+              {isBidding ? (
+                // ### BIDDING STATE ###
+                <motion.div
+                  key="bidding-ui"
+                  className="w-full flex flex-col items-center"
+                  variants={contentVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <h3 className="text-white font-bold text-center text-lg mb-4">
+                    Place Your Bid
+                  </h3>
 
-                {/* Grid of numbers 1-14 */}
-                <div className="flex flex-wrap justify-center gap-2">
-                  {Array.from({ length: 14 }, (_, i) => i + 1).map((bid) => (
-                    <button
-                      key={bid}
-                      onClick={() => setSelectedBid(bid)}
-                      className={`
+                  {/* Grid of numbers 1-14 */}
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {Array.from({ length: 15 }, (_, i) => i).map((bid) => (
+                      <button
+                        key={bid}
+                        onClick={() => setSelectedBid(bid)}
+                        className={`
                         w-10 h-10 rounded-full flex items-center justify-center
                         font-bold text-white transition-all duration-150
                         ${
@@ -123,43 +227,89 @@ const GameTable = () => {
                             : "bg-teal-700 hover:bg-teal-600" // Default style
                         }
                       `}
-                    >
-                      {bid}
-                    </button>
-                  ))}
-                </div>
+                      >
+                        {bid}
+                      </button>
+                    ))}
+                  </div>
 
-                {/* Bid Button */}
-                <button
-                  onClick={handleBidSubmit}
-                  disabled={!selectedBid}
-                  className="
+                  {/* Bid Button */}
+                  <button
+                    onClick={handleBidSubmit}
+                    disabled={
+                      currentPlayerTurn !== player.id || selectedBid == null
+                    }
+                    className="
                     mt-4 px-6 py-2 rounded-lg font-bold text-white
                     transition-all duration-150
                     disabled:bg-gray-500 disabled:opacity-70 disabled:cursor-not-allowed
                     bg-green-500 hover:bg-green-400
                   "
+                  >
+                    {selectedBid
+                      ? loading
+                        ? `Bidding ${selectedBid}`
+                        : `Bid ${selectedBid}`
+                      : "Select a Bid"}
+                  </button>
+                </motion.div>
+              ) : isGameOver ? (
+                // ### DEFAULT STATE (Your original div) ###
+                <motion.div
+                  key="game-info"
+                  className="w-full flex flex-col items-center"
+                  variants={contentVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
                 >
-                  {selectedBid ? `Bid ${selectedBid}` : "Select a Bid"}
-                </button>
-              </motion.div>
-            ) : (
-              // ### DEFAULT STATE (Your original div) ###
-              <motion.div
-                key="game-info"
-                className="w-full flex flex-col items-center"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <h3 className="text-white font-bold text-center">Game Info</h3>
-                <p className="text-teal-200 text-xs text-center mt-2">
-                  Bids, Scores, and other details can be displayed here.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <h3 className="text-white font-bold text-center">
+                    Game Info
+                  </h3>
+                  <p className="text-teal-200 text-xs text-center mt-2">
+                    Game Over. Scores will be displayed Soon.
+                  </p>
+                </motion.div>
+              ) : (
+                // ### DEFAULT STATE (Your original div) ###
+                <motion.div
+                  key="game-info"
+                  className="w-full flex flex-col items-center gap-3"
+                  variants={contentVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <h3 className="text-white font-bold text-center">
+                    Game Info
+                  </h3>
+
+                  {/* Responsive row/column layout */}
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-3 w-full max-w-md">
+                    {/* Current Turn Box */}
+                    <div className="flex-1 bg-teal-500/20 border border-teal-500 rounded-lg p-3 text-center">
+                      <span className="text-teal-200 text-sm font-semibold">
+                        Current Turn:
+                      </span>
+                      <div className="text-white text-base font-bold mt-1">
+                        {currentPlayerTurn || "—"}
+                      </div>
+                    </div>
+
+                    {/* Last Winner Box */}
+                    <div className="flex-1 bg-teal-500/20 border border-teal-500 rounded-lg p-3 text-center">
+                      <span className="text-teal-200 text-sm font-semibold">
+                        Winning Player:
+                      </span>
+                      <div className="text-white text-base font-bold mt-1">
+                        {winnerName || "—"}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </motion.div>
         {/* --- END OF MODIFIED SECTION --- */}
 
@@ -174,7 +324,7 @@ const GameTable = () => {
             {/* Played Card Slot & Game Info */}
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-32 bg-black/20 rounded-xl border-2 border-dashed border-teal-500 flex justify-center items-center p-2">
-                {playedCard ? (
+                {isValidPlayedCard() ? (
                   <Card
                     {...playedCard}
                     width="w-20"
@@ -189,15 +339,11 @@ const GameTable = () => {
 
             {/* Your Deck of Cards */}
             <div
-              className={`
-    flex flex-wrap justify-center gap-2 p-4
-    bg-black/20 rounded-xl
-    ${
-      currentPlayerTurn === player.id
-        ? "border-2 border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.7)]"
-        : "border-2 border-teal-500"
-    }
-  `}
+              className={`flex flex-wrap justify-center gap-2 p-4 bg-black/20 rounded-xl ${
+                currentPlayerTurn === player.id
+                  ? "border-2 border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.7)]"
+                  : "border-2 border-teal-500"
+              }`}
             >
               {myHand.map((card, index) => (
                 <div key={index} onClick={() => handlePlayCard(card, index)}>
@@ -213,7 +359,7 @@ const GameTable = () => {
           </div>
 
           <p className="text-white font-semibold mt-2">
-            My name and my details.
+            {`Player: ${player.playerName}`}
           </p>
         </motion.div>
       </main>
