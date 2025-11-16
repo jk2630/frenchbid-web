@@ -45,15 +45,15 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (
         <Card
-          rank="SEVEN"
-          suit="CLUBS"
+          rank={cardsPlayedByPlayers[id].rank}
+          suit={cardsPlayedByPlayers[id].suit}
           width="w-20"
           height="h-28"
           isInteractive={false}
         />
       )}
       {(cardsPlayedByPlayers == null || cardsPlayedByPlayers[id] == null) && (
-        <Card isInteractive={false} />
+        <Card width="w-20" height="h-28" isInteractive={false} />
       )}
     </motion.div>
   );
