@@ -6,7 +6,7 @@ import { GameContext } from "../../context/GameContext";
 // --- Single Player Component ---
 // Opponent cards are not interactive.
 const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
-  const { gameRounds, gameData } = useGame(GameContext);
+  const { gameRounds, gameData, scores } = useGame(GameContext);
   const currentRoundIndex = gameData.roundNumber - 1;
   const currentRound = gameRounds[currentRoundIndex];
   const subRoundIndex = currentRound.subRoundIndex;
@@ -41,7 +41,10 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
         >
           {playerName}
         </span>
-        {/* <span className="text-teal-200 text-xs">{playerId}</span> */}
+        <span className="text-teal-200 text-xs">
+          score:{""}
+          {scores[id]}
+        </span>
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (
         <Card

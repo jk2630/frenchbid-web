@@ -19,7 +19,7 @@ const GameTable = () => {
   const navigate = useNavigate();
 
   // --- 1. HOOKS (Context) ---
-  const { gameInfo, gamePlayers, gameData, gameRounds, createGame } =
+  const { gameInfo, gamePlayers, gameData, gameRounds, scores, createGame } =
     useGame(GameContext);
   const { player } = usePlayer(PlayerContext);
 
@@ -58,13 +58,14 @@ const GameTable = () => {
   }
 
   // --- 6. GAME VARIABLES (Now safe to calculate) ---
-  const gameState = gameData.gameState;
-  const isBidding = gameState === "BIDDING";
-  const isInProgress = gameState === "IN_PROGRESS";
-  const isGameOver = gameState === "GAME_OVER";
+  const isBidding = gameData.gameState === "BIDDING";
+  const isInProgress = gameData.gameState === "IN_PROGRESS";
+  const isGameOver = gameData.gameState === "GAME_OVER";
 
-  const currentPlayerTurn =
-    gamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
+  const playerTurn = gamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
+  const playerTurnPlayername = gamePlayers.at(
+    gameData.currentPlayerTurnIndex
+  ).playerName;
 
   const currentRound = gameRounds.at(gameData.roundNumber - 1);
   const subRoundIndex = currentRound.subRoundIndex;
@@ -72,6 +73,7 @@ const GameTable = () => {
   // We calculate these here but set them in an effect.
   const winnerName = currentRound.subRounds.at(subRoundIndex).winnerId;
   const cardsPlayed = currentRound.subRounds.at(subRoundIndex).cardsPlayed;
+  const trumpCard = currentRound.trumpCard;
   const currentPlayedCard = cardsPlayed?.[player.id] ?? null;
   const currentPlayerHand = gameData.playerHoldingCards[player.id];
 
@@ -91,6 +93,10 @@ const GameTable = () => {
   useEffect(() => {
     setPlayedCard(currentPlayedCard);
   }, [currentPlayedCard]); // Dependency: the card from cardsPlayed
+
+  useEffect(() => {
+    if (isBidding) setPlayedCard(null);
+  }, [gameData.gameState]);
 
   // --- 9. HOOKS (Effects for API calls) ---
   const fetchCurrentGame = useCallback(async () => {
@@ -119,7 +125,7 @@ const GameTable = () => {
 
   const handlePlayCard = async (cardToPlay, index) => {
     // This logic is now fine
-    if (!isInProgress || isValidPlayedCard() || currentPlayerTurn !== player.id)
+    if (!isInProgress || isValidPlayedCard() || playerTurn !== player.id)
       return;
     setPlayedCard(cardToPlay);
     setMyHand((currentHand) => currentHand.filter((_, i) => i !== index));
@@ -180,45 +186,58 @@ const GameTable = () => {
       <main className="w-full grow flex flex-col items-center justify-between p-2">
         <div className="flex flex-col w-full lg:flex-row items-center gap-4">
           <FBPlayers
-            currentPlayerTurn={currentPlayerTurn}
+            currentPlayerTurn={playerTurn}
             displayPlayers={displayPlayers}
           />
         </div>
 
         {/* --- 5. MODIFIED BIDDING/INFO PANEL --- */}
         <motion.div
-          className="w-full lg:w-2xl bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col justify-center items-center m-1 p-4 min-h-52" // Fixed typo
+          className="w-full lg:w-3xl bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col md:flex-row justify-center gap-10 items-center m-1 p-4 min-h-52" // Fixed typo
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {initialLoading ? (
-            <h1 className="text-lg font-medium text-white">
-              Fetching Game Data...
-            </h1>
-          ) : (
-            <AnimatePresence mode="wait">
-              {isBidding ? (
-                // ### BIDDING STATE ###
-                <motion.div
-                  key="bidding-ui"
-                  className="w-full flex flex-col items-center"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                  <h3 className="text-white font-bold text-center text-lg mb-4">
-                    Place Your Bid
-                  </h3>
+          <div className="flex flex-col items-center justify-center">
+            <h1 className="text-white font-medium">Trump</h1>
+            <div className="p-1 m-2 border border-teal-200 rounded-xl border-dashed">
+              <Card
+                {...trumpCard}
+                width="w-20"
+                height="h-28"
+                isTrump={true}
+                isInteractive={false}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col">
+            {initialLoading ? (
+              <h1 className="text-lg font-medium text-white">
+                Fetching Game Data...
+              </h1>
+            ) : (
+              <AnimatePresence mode="wait">
+                {isBidding ? (
+                  // ### BIDDING STATE ###
+                  <motion.div
+                    key="bidding-ui"
+                    className="w-full flex flex-col items-center"
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <h3 className="text-white font-bold text-center text-lg mb-4">
+                      Place Your Bid
+                    </h3>
 
-                  {/* Grid of numbers 1-14 */}
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {Array.from({ length: 15 }, (_, i) => i).map((bid) => (
-                      <button
-                        key={bid}
-                        onClick={() => setSelectedBid(bid)}
-                        className={`
+                    {/* Grid of numbers 1-14 */}
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {Array.from({ length: 15 }, (_, i) => i).map((bid) => (
+                        <button
+                          key={bid}
+                          onClick={() => setSelectedBid(bid)}
+                          className={`
                         w-10 h-10 rounded-full flex items-center justify-center
                         font-bold text-white transition-all duration-150
                         ${
@@ -227,89 +246,88 @@ const GameTable = () => {
                             : "bg-teal-700 hover:bg-teal-600" // Default style
                         }
                       `}
-                      >
-                        {bid}
-                      </button>
-                    ))}
-                  </div>
+                        >
+                          {bid}
+                        </button>
+                      ))}
+                    </div>
 
-                  {/* Bid Button */}
-                  <button
-                    onClick={handleBidSubmit}
-                    disabled={
-                      currentPlayerTurn !== player.id || selectedBid == null
-                    }
-                    className="
+                    {/* Bid Button */}
+                    <button
+                      onClick={handleBidSubmit}
+                      disabled={playerTurn !== player.id || selectedBid == null}
+                      className="
                     mt-4 px-6 py-2 rounded-lg font-bold text-white
                     transition-all duration-150
                     disabled:bg-gray-500 disabled:opacity-70 disabled:cursor-not-allowed
                     bg-green-500 hover:bg-green-400
                   "
+                    >
+                      {selectedBid
+                        ? loading
+                          ? `Bidding ${selectedBid}`
+                          : `Bid ${selectedBid}`
+                        : "Select a Bid"}
+                    </button>
+                  </motion.div>
+                ) : isGameOver ? (
+                  // ### DEFAULT STATE (Your original div) ###
+                  <motion.div
+                    key="game-info"
+                    className="w-full flex flex-col items-center"
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
                   >
-                    {selectedBid
-                      ? loading
-                        ? `Bidding ${selectedBid}`
-                        : `Bid ${selectedBid}`
-                      : "Select a Bid"}
-                  </button>
-                </motion.div>
-              ) : isGameOver ? (
-                // ### DEFAULT STATE (Your original div) ###
-                <motion.div
-                  key="game-info"
-                  className="w-full flex flex-col items-center"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                  <h3 className="text-white font-bold text-center">
-                    Game Info
-                  </h3>
-                  <p className="text-teal-200 text-xs text-center mt-2">
-                    Game Over. Scores will be displayed Soon.
-                  </p>
-                </motion.div>
-              ) : (
-                // ### DEFAULT STATE (Your original div) ###
-                <motion.div
-                  key="game-info"
-                  className="w-full flex flex-col items-center gap-3"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                  <h3 className="text-white font-bold text-center">
-                    Game Info
-                  </h3>
+                    <h3 className="text-white font-bold text-center">
+                      Game Info
+                    </h3>
+                    <p className="text-teal-200 text-xs text-center mt-2">
+                      Game Over. Scores will be displayed Soon.
+                    </p>
+                  </motion.div>
+                ) : (
+                  // ### DEFAULT STATE (Your original div) ###
+                  <motion.div
+                    key="game-info"
+                    className="w-full flex flex-col items-center gap-3"
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    {/* <h3 className="text-white font-bold text-center">
+                      Game Info
+                    </h3> */}
 
-                  {/* Responsive row/column layout */}
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-3 w-full max-w-md">
-                    {/* Current Turn Box */}
-                    <div className="flex-1 bg-teal-500/20 border border-teal-500 rounded-lg p-3 text-center">
-                      <span className="text-teal-200 text-sm font-semibold">
-                        Current Turn:
-                      </span>
-                      <div className="text-white text-base font-bold mt-1">
-                        {currentPlayerTurn || "—"}
+                    {/* Responsive row/column layout */}
+                    <div className="flex flex-col items-center justify-center gap-3 w-full max-w-md">
+                      {/* Current Turn Box */}
+                      <div className="flex items-center justify-center gap-2 bg-teal-500/20 border border-teal-500 rounded-lg p-3">
+                        <div className="text-teal-200 text-sm font-semibold">
+                          Current Turn:
+                        </div>
+                        <div className="text-white text-base font-bold">
+                          {playerTurnPlayername || "-"}
+                        </div>
+                      </div>
+
+                      {/* Last Winner Box */}
+                      <div className="flex items-center justify-center gap-2 bg-teal-500/20 border border-teal-500 rounded-lg p-3">
+                        <div className="text-teal-200 text-sm font-semibold">
+                          Winning Player:
+                        </div>
+                        <div className="text-white text-base font-bold">
+                          {winnerName || "—"}
+                        </div>
                       </div>
                     </div>
-
-                    {/* Last Winner Box */}
-                    <div className="flex-1 bg-teal-500/20 border border-teal-500 rounded-lg p-3 text-center">
-                      <span className="text-teal-200 text-sm font-semibold">
-                        Winning Player:
-                      </span>
-                      <div className="text-white text-base font-bold mt-1">
-                        {winnerName || "—"}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
+          </div>
         </motion.div>
         {/* --- END OF MODIFIED SECTION --- */}
 
@@ -340,7 +358,7 @@ const GameTable = () => {
             {/* Your Deck of Cards */}
             <div
               className={`flex flex-wrap justify-center gap-2 p-4 bg-black/20 rounded-xl ${
-                currentPlayerTurn === player.id
+                playerTurn === player.id
                   ? "border-2 border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.7)]"
                   : "border-2 border-teal-500"
               }`}
@@ -358,9 +376,26 @@ const GameTable = () => {
             </div>
           </div>
 
-          <p className="text-white font-semibold mt-2">
-            {`Player: ${player.playerName}`}
-          </p>
+          <div className="flex justify-around border w-full border-cyan-300/50 bg-teal-700 rounded-md px-3 py-2 mt-1 gap-4">
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-cyan-200 text-md font-bold">Player:</h1>
+              <h1 className="text-white font-medium">{player.playerName}</h1>
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-cyan-200 text-md font-bold">Bid:</h1>
+              <p className="text-white font-medium">
+                {currentRound.playerBids[player.id] != null
+                  ? currentRound.playerBids[player.id]
+                  : "Bidding"}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-cyan-200 text-md font-bold">Score:</h1>
+              <p className="text-white font-medium">{scores[player.id]}</p>
+            </div>
+          </div>
         </motion.div>
       </main>
       <FBFooter />
