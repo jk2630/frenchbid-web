@@ -99,8 +99,8 @@ const GameTable = () => {
   }, [currentPlayedCard]); // Dependency: the card from cardsPlayed
 
   useEffect(() => {
-    if (isBidding) setPlayedCard(null);
-  }, [gameData.gameState]);
+    setPlayedCard(null);
+  }, [gameData.gameState, gameRounds.at(gameData.roundNumber).subRoundIndex]);
 
   // --- 9. HOOKS (Effects for API calls) ---
   const fetchCurrentGame = useCallback(async () => {
