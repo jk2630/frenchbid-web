@@ -86,6 +86,22 @@ const GameTable = () => {
     return Array.from({ length: 15 }, (_, i) => i);
   }, [navigate]);
 
+  const playerTotalWins = useMemo(() => {
+    const totalWins = {};
+
+    for (let i = 0; i <= subRoundIndex; i++) {
+      const subRound = currentRound.subRounds[i];
+      if (!subRound) continue;
+
+      const winnerId = subRound.winnerId;
+      if (!winnerId) continue;
+
+      totalWins[winnerId] = (totalWins[winnerId] || 0) + 1;
+    }
+
+    return totalWins;
+  }, [subRoundIndex, gameData.roundNumber]);
+
   // --- 8. HOOKS (Effects for State Synchronization) ---
 
   // FIX: This effect synchronizes `myHand` state with the context
@@ -156,7 +172,6 @@ const GameTable = () => {
 
   const handleBidSubmit = async () => {
     if (selectedBid != null) {
-      console.log(`Bid submitted: ${selectedBid}`);
       const playerBidRequest = {
         gameId: gameInfo.id,
         playerBid: selectedBid,
@@ -197,6 +212,7 @@ const GameTable = () => {
           <FBPlayers
             currentPlayerTurn={playerTurn}
             displayPlayers={displayPlayers}
+            playerTotalWins={playerTotalWins}
           />
         </div>
 
@@ -288,7 +304,7 @@ const GameTable = () => {
                     Game Info
                   </h3>
                   <p className="text-teal-200 text-xs text-center mt-2">
-                    Game Over. Scores will be displayed Soon.
+                    Game Over. Scores chuskoni chill avvandi guys
                   </p>
                 </motion.div>
               ) : (
@@ -386,6 +402,11 @@ const GameTable = () => {
             </div>
 
             <div className="flex items-center justify-center gap-2">
+              <h1 className="text-cyan-200 text-md font-bold">Score:</h1>
+              <p className="text-white font-medium">{scores[player.id]}</p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
               <h1 className="text-cyan-200 text-md font-bold">Bid:</h1>
               <p className="text-white font-medium">
                 {currentRound.playerBids[player.id] != null
@@ -395,8 +416,10 @@ const GameTable = () => {
             </div>
 
             <div className="flex items-center justify-center gap-2">
-              <h1 className="text-cyan-200 text-md font-bold">Score:</h1>
-              <p className="text-white font-medium">{scores[player.id]}</p>
+              <h1 className="text-cyan-200 text-md font-bold">Wins:</h1>
+              <p className="text-white font-medium">
+                {playerTotalWins[player.playerName] || 0}
+              </p>
             </div>
           </div>
         </motion.div>

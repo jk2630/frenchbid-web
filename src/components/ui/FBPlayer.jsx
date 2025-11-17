@@ -2,10 +2,11 @@ import { motion } from "framer-motion";
 import Card from "../Card";
 import useGame from "../../hooks/useGame";
 import { GameContext } from "../../context/GameContext";
+import { useMemo } from "react";
 
 // --- Single Player Component ---
 // Opponent cards are not interactive.
-const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
+const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
   const { gameRounds, gameData, scores } = useGame(GameContext);
   const currentRoundIndex = gameData.roundNumber - 1;
   const currentRound = gameRounds[currentRoundIndex];
@@ -52,6 +53,10 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
             : currentRound.playerBids[id] != null
             ? currentRound.playerBids[id]
             : "None"}
+        </span>
+        <span className="text-teal-200 text-xs">
+          wins:{""}
+          {playerTotalWins[playerName] || 0}
         </span>
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (

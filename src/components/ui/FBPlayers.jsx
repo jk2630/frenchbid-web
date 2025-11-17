@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 // --- Opponent Players Container ---
 // Arranges all the opponent players in a responsive, wrapping row.
 const FBPlayers = (props) => {
-  const { currentPlayerTurn, displayPlayers } = props;
+  const { currentPlayerTurn, displayPlayers, playerTotalWins } = props;
   // const players = Array.from({ length: 5 }, (_, i) => ({
   //     playerName: `player ${i + 1}`,
   //     playerId: `ID_${1001 + i}`,
@@ -35,6 +35,7 @@ const FBPlayers = (props) => {
                 key={index}
                 {...player}
                 currentPlayerTurn={currentPlayerTurn}
+                playerTotalWins={playerTotalWins}
               />
             )
         )}
