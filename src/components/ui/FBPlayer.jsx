@@ -51,7 +51,7 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn }) => {
             ? "Bidding"
             : currentRound.playerBids[id] != null
             ? currentRound.playerBids[id]
-            : 0}
+            : "None"}
         </span>
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (
