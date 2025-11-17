@@ -100,7 +100,10 @@ const GameTable = () => {
 
   useEffect(() => {
     setPlayedCard(null);
-  }, [gameData.gameState, gameRounds.at(gameData.roundNumber).subRoundIndex]);
+  }, [
+    gameData.gameState,
+    gameRounds.at(gameData.roundNumber - 1).subRoundIndex,
+  ]);
 
   // --- 9. HOOKS (Effects for API calls) ---
   const fetchCurrentGame = useCallback(async () => {
@@ -387,7 +390,7 @@ const GameTable = () => {
               <p className="text-white font-medium">
                 {currentRound.playerBids[player.id] != null
                   ? currentRound.playerBids[player.id]
-                  : 0}
+                  : "Yet to Bid"}
               </p>
             </div>
 
