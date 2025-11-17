@@ -199,7 +199,7 @@ const GameTable = () => {
 
         {/* --- 5. MODIFIED BIDDING/INFO PANEL --- */}
         <motion.div
-          className="w-full lg:w-3xl bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col md:flex-row justify-between gap-10 items-center m-1 p-4 min-h-52" // Fixed typo
+          className="w-full lg:w-3xl bg-black/20 rounded-xl border-2 border-dashed border-teal-500 shrink-0 flex flex-col md:flex-row justify-center gap-10 items-center m-1 p-4 min-h-52" // Fixed typo
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
