@@ -7,6 +7,7 @@ const Card = ({
   suit,
   width = "w-24",
   height = "h-36",
+  isTrump = false,
   isInteractive = true,
 }) => {
   const isCardEmpty = rank == null || suit == null;
@@ -26,7 +27,7 @@ const Card = ({
     KING: "K",
   };
 
-  const rankFromMap = rankMap[rank];
+  const rankFromMap = isTrump ? "T" : rankMap[rank];
 
   const suitSymbols = {
     CLUBS: { symbol: "♣", color: "text-gray-800" },
