@@ -134,7 +134,7 @@ const Lobby = () => {
 
             {/* Scrollable list of players in the lobby */}
             <div className="space-y-3 flex-1 overflow-y-auto pr-2">
-              {gamePlayers.map(
+              {Object.values(gamePlayers).map(
                 (lobbyPlayer) =>
                   lobbyPlayer.playerName !== gameInfo.owner && (
                     <div

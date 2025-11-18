@@ -1,4 +1,5 @@
-export const getAntiClockwisePlayers = (gamePlayers, currentPlayerId) => {
+export const getAntiClockwisePlayers = (gamePlayersObj, currentPlayerId) => {
+  const gamePlayers = Object.values(gamePlayersObj);
   const n = gamePlayers.length;
   if (n === 0) {
     return [];

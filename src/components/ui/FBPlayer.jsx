@@ -8,9 +8,9 @@ import { useMemo } from "react";
 // Opponent cards are not interactive.
 const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
   const { gameRounds, gameData, scores } = useGame(GameContext);
-  const currentRoundIndex = gameData.roundNumber - 1;
+  const currentRoundIndex = Object.keys(gameRounds).length - 1;
   const currentRound = gameRounds[currentRoundIndex];
-  const subRoundIndex = currentRound.subRoundIndex;
+  const subRoundIndex = Object.keys(currentRound.subRounds).length - 1;
   const cardsPlayedByPlayers =
     currentRound.subRounds[subRoundIndex].cardsPlayed;
 
@@ -43,11 +43,11 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
           {playerName}
         </span>
         <span className="text-teal-200 text-xs">
-          score:{""}
+          *:{""}
           {scores[id]}
         </span>
         <span className="text-teal-200 text-xs">
-          bid:{""}
+          B:{""}
           {isCurrentPlayerTurn && gameData.gameState === "BIDDING"
             ? "Bidding"
             : currentRound.playerBids[id] != null
@@ -55,8 +55,8 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
             : "None"}
         </span>
         <span className="text-teal-200 text-xs">
-          wins:{""}
-          {playerTotalWins[playerName] || 0}
+          W:{""}
+          {playerTotalWins[id] || 0}
         </span>
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (
