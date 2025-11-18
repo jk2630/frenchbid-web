@@ -15,7 +15,6 @@ export const useGameService = (navigate) => {
       gameRequest = {
         ...gameRequest,
         playerId: player.id,
-        playerName: player.playerName,
       };
       try {
         const res = await axiosClient.post("/games", gameRequest);

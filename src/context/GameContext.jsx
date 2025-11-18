@@ -131,7 +131,11 @@ export const GameContextProvider = ({ children }) => {
     setGamePlayers((prev) => [...prev, ...player]);
   };
   const removePlayer = (playerId) => {
-    setGamePlayers(gamePlayers.filter((player) => player.id != playerId));
+    setGamePlayers((prev) => {
+      const updated = { ...prev };
+      delete updated[playerId];
+      return updated;
+    });
   };
 
   const updateGameInfo = (newValues) => {

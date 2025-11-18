@@ -39,45 +39,33 @@ const GameTable = () => {
   // --- 4. HOOKS (Ref) ---
   const hasFetched = useRef();
 
-  // --- 5. COMPREHENSIVE GUARD CLAUSE ---
-  // This must come AFTER all hooks.
-  // It checks for all data. If anything is missing
-  // (e.g., after leaving a game), it returns null and
-  // prevents the component from crashing.
-  if (
-    !gameInfo ||
-    !gamePlayers ||
-    gamePlayers.length === 0 ||
-    !gameData ||
-    !player
-  ) {
-    // We can safely navigate here if we want, or just let other
-    // components (like FBHeader) handle it.
-    // navigate("/dashboard");
-    return null;
-  }
-
   // --- 6. GAME VARIABLES (Now safe to calculate) ---
   const isBidding = gameData.gameState === "BIDDING";
   const isInProgress = gameData.gameState === "IN_PROGRESS";
   const isGameOver = gameData.gameState === "GAME_OVER";
 
-  const playerTurn = gamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
-  const playerTurnPlayername = gamePlayers.at(
-    gameData.currentPlayerTurnIndex
-  ).playerName;
+  const currentGamePlayers = Object.values(gamePlayers);
+  const playerTurn =
+    currentGamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
+  const playerTurnPlayername =
+    currentGamePlayers[gameData.currentPlayerTurnIndex].playerName;
 
-  const currentRound = gameRounds.at(gameData.roundNumber - 1);
-  const subRoundIndex = currentRound.subRoundIndex;
+  const currentRoundIndex = Object.keys(gameRounds).length - 1;
+  const currentRound = gameRounds[currentRoundIndex];
+  const subRoundIndex = Object.keys(currentRound.subRounds).length - 1;
+  const currentSubRound = currentRound.subRounds[subRoundIndex];
 
   // We calculate these here but set them in an effect.
-  const winnerName = currentRound.subRounds.at(subRoundIndex).winnerId;
-  const cardsPlayed = currentRound.subRounds.at(subRoundIndex).cardsPlayed;
+  const winnerName = currentSubRound.winnerId
+    ? gamePlayers[currentSubRound.winnerId].playerName
+    : "-";
+  const cardsPlayed = currentSubRound.cardsPlayed;
   const trumpCard = currentRound.trumpCard;
   const currentPlayedCard = cardsPlayed?.[player.id] ?? null;
   const currentPlayerHand = gameData.playerHoldingCards[player.id];
 
   // --- 7. HOOK (Memo for displayPlayers) ---
+
   const displayPlayers = useMemo(() => {
     return getAntiClockwisePlayers(gamePlayers, player.id);
   }, [gamePlayers, player]);
@@ -116,10 +104,7 @@ const GameTable = () => {
 
   useEffect(() => {
     setPlayedCard(null);
-  }, [
-    gameData.gameState,
-    gameRounds.at(gameData.roundNumber - 1).subRoundIndex,
-  ]);
+  }, [gameData.gameState, Object.keys(currentRound.subRounds).length]);
 
   // --- 9. HOOKS (Effects for API calls) ---
   const fetchCurrentGame = useCallback(async () => {
@@ -204,8 +189,8 @@ const GameTable = () => {
         display_menu={true}
         inGame={true}
         navigate={navigate}
-        playersCount={gamePlayers.length}
-        round={gameData.roundNumber}
+        playersCount={currentGamePlayers.length}
+        round={currentRoundIndex + 1}
       />
       <main className="w-full grow flex flex-col items-center justify-between p-2">
         <div className="flex flex-col w-full lg:flex-row items-center gap-4">
@@ -283,7 +268,7 @@ const GameTable = () => {
                     bg-green-500 hover:bg-green-400
                   "
                   >
-                    {selectedBid
+                    {selectedBid != null
                       ? loading
                         ? `Bidding ${selectedBid}`
                         : `Bid ${selectedBid}`
@@ -339,7 +324,7 @@ const GameTable = () => {
                         Winning Player:
                       </div>
                       <div className="text-white text-base font-bold">
-                        {winnerName || "—"}
+                        {winnerName}
                       </div>
                     </div>
                   </div>
@@ -382,16 +367,21 @@ const GameTable = () => {
                   : "border-2 border-teal-500"
               }`}
             >
-              {myHand.map((card, index) => (
-                <div key={index} onClick={() => handlePlayCard(card, index)}>
-                  <Card
-                    {...card}
-                    width="w-20"
-                    height="h-28"
-                    isInteractive={true}
-                  />
-                </div>
-              ))}
+              {myHand == null
+                ? Eliminated
+                : myHand.map((card, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handlePlayCard(card, index)}
+                    >
+                      <Card
+                        {...card}
+                        width="w-20"
+                        height="h-28"
+                        isInteractive={true}
+                      />
+                    </div>
+                  ))}
             </div>
           </div>
 
@@ -416,9 +406,9 @@ const GameTable = () => {
             </div>
 
             <div className="flex items-center justify-center gap-2">
-              <h1 className="text-cyan-200 text-md font-bold">Wins:</h1>
+              <h1 className="text-cyan-200 text-md font-bold">Won:</h1>
               <p className="text-white font-medium">
-                {playerTotalWins[player.playerName] || 0}
+                {playerTotalWins[player.id] || 0}
               </p>
             </div>
           </div>

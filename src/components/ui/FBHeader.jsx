@@ -27,15 +27,13 @@ const FBHeader = (props) => {
         {display_stats && (
           <>
             <span className="flex items-center gap-2">
-              <i className="fas fa-users text-yellow-400"></i>Players:{" "}
-              {playersCount}
+              <i className="fas fa-users text-yellow-400"></i> {playersCount}
             </span>
             <span className="flex items-center gap-2">
-              <i className="fas fa-sync-alt text-yellow-400"></i>Round: {round}{" "}
-              / 14
+              <i className="fas fa-sync-alt text-yellow-400"></i> {round} / 14
             </span>
             <span className="flex items-center gap-2">
-              <i className="fas fa-crown text-yellow-400"></i>Top: Player A
+              <i className="fas fa-crown text-yellow-400"></i>Player A
             </span>
           </>
         )}
