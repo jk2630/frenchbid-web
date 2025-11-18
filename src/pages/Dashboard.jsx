@@ -326,7 +326,7 @@ const Dashboard = () => {
                     <div className="flex flex-col lg:flex-row gap-2 text-gray-300 text-sm mt-1">
                       <span>
                         <i className="fas fa-users text-yellow-400 mr-1"></i>{" "}
-                        {game.players.length}
+                        {Object.keys(game.players).length}
                       </span>
                       {game.isPrivate ? (
                         <span className="flex items-center gap-1 text-red-400">
