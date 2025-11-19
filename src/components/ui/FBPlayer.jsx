@@ -43,7 +43,7 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
           {playerName}
         </span>
         <span className="text-teal-200 text-xs">
-          *:{""}
+          S:{""}
           {scores[id]}
         </span>
         <span className="text-teal-200 text-xs">
