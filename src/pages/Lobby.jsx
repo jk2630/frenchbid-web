@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import FBHeader from "../components/ui/FBHeader";
 import FBFooter from "../components/ui/FBFooter";
@@ -9,13 +9,20 @@ import { GameContext } from "../context/GameContext";
 import usePlayer from "../hooks/usePlayer";
 import { PlayerContext } from "../context/PlayerContext";
 import { useGameService } from "../service/game/useGameService";
+import useGameEvents from "../hooks/useGameEvents";
 
 const Lobby = () => {
   const navigate = useNavigate();
 
   // Contexts
-  const { gameInfo, gamePlayers, createGame, removePlayer } =
-    useGame(GameContext);
+  const {
+    gameInfo,
+    gamePlayers,
+    createGame,
+    resetGame,
+    addPlayer,
+    removePlayer,
+  } = useGame(GameContext);
   const { player } = usePlayer(PlayerContext);
 
   // services
@@ -74,7 +81,7 @@ const Lobby = () => {
    * Checks player count and navigates to the game.
    */
   const handleStartGame = async () => {
-    if (gamePlayers.length < 2) {
+    if (Object.keys(gamePlayers).length < 2) {
       setMessage("Need atleast 2 players");
       return;
     }
@@ -93,6 +100,26 @@ const Lobby = () => {
       setLoading(false);
     }
   };
+
+  const handleLobbySseEvents = useMemo(
+    () => ({
+      PLAYER_JOINED: (data) => {
+        addPlayer(data);
+      },
+      PLAYER_LEFT: (data) => {
+        removePlayer(data);
+      },
+      GAME_STARTED: (data) => {
+        navigate("/game");
+      },
+      GAME_CANCELLED: (data) => {
+        resetGame();
+      },
+    }),
+    [navigate]
+  );
+
+  useGameEvents(player.id, gameInfo.id, handleLobbySseEvents);
 
   // --- Main Render ---
 

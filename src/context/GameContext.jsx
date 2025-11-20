@@ -128,7 +128,7 @@ export const GameContextProvider = ({ children }) => {
   };
 
   const addPlayer = (player) => {
-    setGamePlayers((prev) => [...prev, ...player]);
+    setGamePlayers((prev) => ({ ...prev, [player.id]: player }));
   };
   const removePlayer = (playerId) => {
     setGamePlayers((prev) => {
