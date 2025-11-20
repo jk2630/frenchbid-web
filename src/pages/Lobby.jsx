@@ -171,7 +171,7 @@ const Lobby = () => {
                       <span className="text-lg text-white">
                         {lobbyPlayer.playerName}
                       </span>
-                      {lobbyPlayer.playerName == gameInfo.owner && (
+                      {lobbyPlayer.playerName !== gameInfo.owner && (
                         <button
                           onClick={() => handleRemovePlayer(lobbyPlayer)}
                           className="bg-red-600 hover:bg-red-500 text-white font-semibold py-1 px-4 rounded-lg transition-colors"
