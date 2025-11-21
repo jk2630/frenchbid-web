@@ -56,7 +56,7 @@ const GameTable = () => {
   const playerTurn =
     currentGamePlayers[gameData.currentPlayerTurnIndex]?.id || "";
   const playerTurnPlayername =
-    currentGamePlayers[gameData.currentPlayerTurnIndex].playerName;
+    currentGamePlayers[gameData.currentPlayerTurnIndex]?.playerName;
 
   const currentRoundIndex = Object.keys(gameRounds).length - 1;
   const currentRound = gameRounds[currentRoundIndex];
@@ -65,7 +65,7 @@ const GameTable = () => {
 
   // We calculate these here but set them in an effect.
   const winnerName = currentSubRound.winnerId
-    ? gamePlayers[currentSubRound.winnerId].playerName
+    ? gamePlayers[currentSubRound.winnerId]?.playerName
     : "-";
   const cardsPlayed = currentSubRound.cardsPlayed;
   const trumpCard = currentRound.trumpCard;
@@ -89,12 +89,17 @@ const GameTable = () => {
       const subRound = currentRound.subRounds[i];
       if (!subRound) continue;
 
+      if (
+        subRound.cardsPlayed == null ||
+        subRound.cardsPlayed.length != currentGamePlayers.length
+      )
+        continue;
+
       const winnerId = subRound.winnerId;
       if (!winnerId) continue;
 
       totalWins[winnerId] = (totalWins[winnerId] || 0) + 1;
     }
-
     return totalWins;
   }, [subRoundIndex, gameData.roundNumber]);
 
@@ -109,10 +114,6 @@ const GameTable = () => {
   useEffect(() => {
     setPlayedCard(currentPlayedCard);
   }, [currentPlayedCard]); // Dependency: the card from cardsPlayed
-
-  useEffect(() => {
-    setPlayedCard(null);
-  }, [gameData.gameState, Object.keys(currentRound.subRounds).length]);
 
   // --- 9. HOOKS (Effects for API calls) ---
   const fetchCurrentGame = useCallback(async () => {
@@ -193,7 +194,11 @@ const GameTable = () => {
 
         const { currentPlayerTurnIndex, updatedSubRound, isLastPlay } = data;
         // update cardPlayed, winnerPlayerId
-        updateSubRound(currentRoundIndex, updatedSubRound.id, updatedSubRound);
+        updateSubRound(
+          currentRoundIndex,
+          updatedSubRound.id - 1,
+          updatedSubRound
+        );
         if (isLastPlay) {
           setGamePause(true);
           setTimeout(() => {
@@ -205,7 +210,8 @@ const GameTable = () => {
         }
       },
       PLAYER_LEFT: (data) => {
-        alert(gamePlayers[data].playerName + " left the game.");
+        const leftPlayer = gamePlayers[data].playerName;
+        alert(data === player.id ? "You" : leftPlayer + " left the game.");
         fetchCurrentGame();
       },
       GAME_CANCELLED: (data) => {

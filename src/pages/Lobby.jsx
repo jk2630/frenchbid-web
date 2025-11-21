@@ -46,6 +46,8 @@ const Lobby = () => {
           res.gameData.gameState == "IN_PROGRESS"
         ) {
           navigate("/game");
+        } else if (res.gameData.gameState === "GAME_CANCELLED") {
+          resetGame();
         }
       } catch (error) {
         console.error("fetchGameByGameId:", error);
