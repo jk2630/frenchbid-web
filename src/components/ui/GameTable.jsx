@@ -46,6 +46,7 @@ const GameTable = () => {
   const [selectedBid, setSelectedBid] = useState(null);
   const [loading, setLoading] = useState(false);
   const [gamePause, setGamePause] = useState(false);
+  const [playerTotalWins, setPlayerTotalWins] = useState({});
 
   // --- 6. GAME VARIABLES (Now safe to calculate) ---
   const isBidding = gameData.gameState === "BIDDING";
@@ -82,26 +83,37 @@ const GameTable = () => {
     return Array.from({ length: 15 }, (_, i) => i);
   }, [navigate]);
 
-  const playerTotalWins = useMemo(() => {
-    const totalWins = {};
+  // const playerTotalWins = useMemo(() => {
+  //   const totalWins = {};
 
-    for (let i = 0; i <= subRoundIndex; i++) {
-      const subRound = currentRound.subRounds[i];
-      if (!subRound) continue;
+  //   for (let i = 0; i <= subRoundIndex; i++) {
+  //     const subRound = currentRound.subRounds[i];
+  //     if (!subRound) continue;
 
-      if (
-        subRound.cardsPlayed == null ||
-        subRound.cardsPlayed.length != currentGamePlayers.length
-      )
-        continue;
+  //     if (
+  //       subRound.cardsPlayed == null ||
+  //       subRound.cardsPlayed.length != currentGamePlayers.length
+  //     )
+  //       continue;
 
-      const winnerId = subRound.winnerId;
-      if (!winnerId) continue;
+  //     const winnerId = subRound.winnerId;
+  //     if (!winnerId) continue;
 
-      totalWins[winnerId] = (totalWins[winnerId] || 0) + 1;
-    }
-    return totalWins;
-  }, [subRoundIndex, gameData.roundNumber]);
+  //     totalWins[winnerId] = (totalWins[winnerId] || 0) + 1;
+  //   }
+  //   return totalWins;
+  // }, [currentRound, subRoundIndex, currentGamePlayers.length]);
+
+  useEffect(() => {
+    if (!gamePause) return;
+    const winnerId = currentSubRound.winnerId;
+    setPlayerTotalWins((prev) => ({
+      ...prev,
+      [winnerId]: (playerTotalWins[winnerId] || 0) + 1,
+    }));
+  }, [gamePause, currentSubRound]);
+
+  useEffect(() => setPlayerTotalWins({}), [currentRoundIndex]);
 
   // --- 8. HOOKS (Effects for State Synchronization) ---
 
