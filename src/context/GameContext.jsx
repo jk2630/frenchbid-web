@@ -147,9 +147,14 @@ export const GameContextProvider = ({ children }) => {
     setGameData((prev) => ({ ...prev, ...newValues }));
   };
 
-  const updateSubRound = (targetRoundKey, subRoundKey, updatedSubRoundData) => {
+  const updateSubRound = (targetRoundKey, updatedSubRoundData) => {
+    console.log({
+      roundIndex: targetRoundKey,
+      updatedSubRoundData: updatedSubRoundData,
+    });
     setGameRounds((prev) => {
       const oldRound = prev[targetRoundKey];
+      const subRoundKey = updatedSubRoundData.id - 1;
 
       const updatedRound = {
         ...oldRound,
@@ -166,6 +171,11 @@ export const GameContextProvider = ({ children }) => {
   };
 
   const updatePlayerBid = (targetRoundKey, playerId, updatedBid) => {
+    console.log({
+      round: targetRoundKey,
+      playerId: playerId,
+      updatedBid: updatedBid,
+    });
     setGameRounds((prev) => {
       const oldRound = prev[targetRoundKey];
 
