@@ -179,12 +179,17 @@ const GameTable = () => {
     return {
       PLAYER_BID: (data) => {
         // update bid directly
-        const { currentPlayerTurnIndex, playerId, playerBid, isLastPlayerBid } =
-          data;
+        const {
+          currentPlayerTurnIndex,
+          roundIndex,
+          playerId,
+          playerBid,
+          isLastPlayerBid,
+        } = data;
         if (isLastPlayerBid) {
           fetchCurrentGame();
         } else {
-          updatePlayerBid(currentRoundIndex, playerId, playerBid);
+          updatePlayerBid(roundIndex, playerId, playerBid);
           updateGameData({ currentPlayerTurnIndex: currentPlayerTurnIndex });
         }
       },
@@ -192,13 +197,14 @@ const GameTable = () => {
         // if last player card received, then announce winner and pause for 5sec and
         // an api call to update the game for each player.
 
-        const { currentPlayerTurnIndex, updatedSubRound, isLastPlay } = data;
+        const {
+          currentPlayerTurnIndex,
+          roundIndex,
+          updatedSubRound,
+          isLastPlay,
+        } = data;
         // update cardPlayed, winnerPlayerId
-        updateSubRound(
-          currentRoundIndex,
-          updatedSubRound.id - 1,
-          updatedSubRound
-        );
+        updateSubRound(roundIndex, updatedSubRound);
         if (isLastPlay) {
           setGamePause(true);
           setTimeout(() => {
@@ -218,7 +224,7 @@ const GameTable = () => {
         resetGame();
       },
     };
-  }, [navigate, currentRoundIndex]);
+  }, [navigate]);
 
   useGameEvents(player.id, gameInfo.id, handleGameSseEvents);
 
