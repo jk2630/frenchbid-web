@@ -57,7 +57,8 @@ export const GameContext = createContext({
   addPlayer: () => {},
   removePlayer: () => {},
   setGamePlayers: () => {},
-  updateGameRound: () => {},
+  updateSubRound: () => {},
+  updatePlayerBid: () => {},
   updateGameData: () => {},
   updateScores: () => {},
 });
@@ -146,12 +147,41 @@ export const GameContextProvider = ({ children }) => {
     setGameData((prev) => ({ ...prev, ...newValues }));
   };
 
-  const updateGameRound = (roundId, newValues) => {
-    setGameRounds((prevRounds) =>
-      prevRounds.map((round) =>
-        round.roundId === roundId ? { ...round, ...newValues } : round
-      )
-    );
+  const updateSubRound = (targetRoundKey, subRoundKey, updatedSubRoundData) => {
+    setGameRounds((prev) => {
+      const oldRound = prev[targetRoundKey];
+
+      const updatedRound = {
+        ...oldRound,
+        subRounds: {
+          ...oldRound.subRounds,
+          [subRoundKey]: updatedSubRoundData,
+        },
+      };
+      return {
+        ...prev,
+        [targetRoundKey]: updatedRound,
+      };
+    });
+  };
+
+  const updatePlayerBid = (targetRoundKey, playerId, updatedBid) => {
+    setGameRounds((prev) => {
+      const oldRound = prev[targetRoundKey];
+
+      const updatedRound = {
+        ...oldRound,
+        playerBids: {
+          ...oldRound.playerBids,
+          [playerId]: updatedBid,
+        },
+      };
+
+      return {
+        ...prev,
+        [targetRoundKey]: updatedRound,
+      };
+    });
   };
 
   const updateScores = (newScores) => {
@@ -172,7 +202,8 @@ export const GameContextProvider = ({ children }) => {
         addPlayer,
         removePlayer,
         setGamePlayers,
-        updateGameRound,
+        updateSubRound,
+        updatePlayerBid,
         updateGameData,
         updateScores,
       }}
