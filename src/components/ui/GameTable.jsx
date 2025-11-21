@@ -218,7 +218,7 @@ const GameTable = () => {
         resetGame();
       },
     };
-  }, [navigate]);
+  }, [navigate, currentRoundIndex]);
 
   useGameEvents(player.id, gameInfo.id, handleGameSseEvents);
 
