@@ -12,6 +12,7 @@ import usePlayer from "../../hooks/usePlayer";
 import { PlayerContext } from "../../context/PlayerContext";
 import { usePlayerActionService } from "../../service/playerAction/usePlayerActionService";
 import { useGameService } from "../../service/game/useGameService";
+import useGameEvents from "../../hooks/useGameEvents";
 
 // --- Main Game Table Component ---
 // This component assembles the entire UI.
@@ -19,8 +20,18 @@ const GameTable = () => {
   const navigate = useNavigate();
 
   // --- 1. HOOKS (Context) ---
-  const { gameInfo, gamePlayers, gameData, gameRounds, scores, createGame } =
-    useGame(GameContext);
+  const {
+    gameInfo,
+    gamePlayers,
+    gameData,
+    updateGameData,
+    gameRounds,
+    updatePlayerBid,
+    updateSubRound,
+    scores,
+    createGame,
+    resetGame,
+  } = useGame(GameContext);
   const { player } = usePlayer(PlayerContext);
 
   // --- 2. HOOKS (Services) ---
@@ -34,10 +45,7 @@ const GameTable = () => {
   const [playedCard, setPlayedCard] = useState(null);
   const [selectedBid, setSelectedBid] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
-
-  // --- 4. HOOKS (Ref) ---
-  const hasFetched = useRef();
+  const [gamePause, setGamePause] = useState(false);
 
   // --- 6. GAME VARIABLES (Now safe to calculate) ---
   const isBidding = gameData.gameState === "BIDDING";
@@ -109,23 +117,16 @@ const GameTable = () => {
   // --- 9. HOOKS (Effects for API calls) ---
   const fetchCurrentGame = useCallback(async () => {
     try {
-      setInitialLoading(true);
       const res = await fetchGameAPI(gameInfo.id);
       createGame(res);
     } catch (error) {
       console.error("fetchCurrentGame:", error);
       alert(error.message || "unable to fetch current game. try again");
-    } finally {
-      setInitialLoading(false);
     }
-  }, [fetchGameAPI, gameInfo, createGame]); // Added createGame to dependency array
+  }, [fetchGameAPI]); // Added createGame to dependency array
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-    setInterval(() => {
-      fetchCurrentGame();
-    }, 2000);
+    fetchCurrentGame();
   }, [fetchCurrentGame]); // Dependency is now the memoized function
 
   // --- 10. HELPER FUNCTIONS ---
@@ -144,8 +145,7 @@ const GameTable = () => {
       playerCard: cardToPlay,
     };
     try {
-      const res = await playerSubRoundAPI(playerSubRoundRequest);
-      createGame(res);
+      await playerSubRoundAPI(playerSubRoundRequest);
     } catch (error) {
       console.error("handlePlayCard:", error);
       // Revert state on error
@@ -163,8 +163,7 @@ const GameTable = () => {
       };
       setLoading(true);
       try {
-        const res = await playerBidAPI(playerBidRequest);
-        createGame(res);
+        await playerBidAPI(playerBidRequest);
       } catch (error) {
         console.error("handleBidSubmit:", error);
         alert(error.message || "unable to place the bid. try again");
@@ -174,6 +173,48 @@ const GameTable = () => {
       }
     }
   };
+
+  const handleGameSseEvents = useMemo(() => {
+    return {
+      PLAYER_BID: (data) => {
+        // update bid directly
+        const { currentPlayerTurnIndex, playerId, playerBid, isLastPlayerBid } =
+          data;
+        if (isLastPlayerBid) {
+          fetchCurrentGame();
+        } else {
+          updatePlayerBid(currentRoundIndex, playerId, playerBid);
+          updateGameData({ currentPlayerTurnIndex: currentPlayerTurnIndex });
+        }
+      },
+      PLAYER_CARD: (data) => {
+        // if last player card received, then announce winner and pause for 5sec and
+        // an api call to update the game for each player.
+
+        const { currentPlayerTurnIndex, updatedSubRound, isLastPlay } = data;
+        // update cardPlayed, winnerPlayerId
+        updateSubRound(currentRoundIndex, updatedSubRound.id, updatedSubRound);
+        if (isLastPlay) {
+          setGamePause(true);
+          setTimeout(() => {
+            setGamePause(false);
+            fetchCurrentGame();
+          }, 5000);
+        } else {
+          updateGameData({ currentPlayerTurnIndex: currentPlayerTurnIndex });
+        }
+      },
+      PLAYER_LEFT: (data) => {
+        alert(gamePlayers[data].playerName + " left the game.");
+        fetchCurrentGame();
+      },
+      GAME_CANCELLED: (data) => {
+        resetGame();
+      },
+    };
+  }, [navigate]);
+
+  useGameEvents(player.id, gameInfo.id, handleGameSseEvents);
 
   const contentVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -309,19 +350,23 @@ const GameTable = () => {
                   {/* Responsive row/column layout */}
                   <div className="flex flex-col items-center justify-center gap-3 w-full max-w-md">
                     {/* Current Turn Box */}
-                    <div className="flex items-center justify-center gap-2 bg-teal-500/20 border border-teal-500 rounded-lg p-3">
-                      <div className="text-teal-200 text-sm font-semibold">
-                        Current Turn:
+                    {gamePause ? (
+                      ""
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-teal-500/20 border border-teal-500 rounded-lg p-3">
+                        <div className="text-teal-200 text-sm font-semibold">
+                          Current Turn:
+                        </div>
+                        <div className="text-white text-base font-bold">
+                          {playerTurnPlayername || "-"}
+                        </div>
                       </div>
-                      <div className="text-white text-base font-bold">
-                        {playerTurnPlayername || "-"}
-                      </div>
-                    </div>
+                    )}
 
                     {/* Last Winner Box */}
                     <div className="flex items-center justify-center gap-2 bg-teal-500/20 border border-teal-500 rounded-lg p-3">
                       <div className="text-teal-200 text-sm font-semibold">
-                        Winning Player:
+                        {gamePause ? "Winner:" : "Winning Player:"}
                       </div>
                       <div className="text-white text-base font-bold">
                         {winnerName}
@@ -367,21 +412,20 @@ const GameTable = () => {
                   : "border-2 border-teal-500"
               }`}
             >
-              {myHand == null
-                ? Eliminated
-                : myHand.map((card, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handlePlayCard(card, index)}
-                    >
-                      <Card
-                        {...card}
-                        width="w-20"
-                        height="h-28"
-                        isInteractive={true}
-                      />
-                    </div>
-                  ))}
+              {myHand == null ? (
+                <h1 className="text-white">ELIMINATED</h1>
+              ) : (
+                myHand.map((card, index) => (
+                  <div key={index} onClick={() => handlePlayCard(card, index)}>
+                    <Card
+                      {...card}
+                      width="w-20"
+                      height="h-28"
+                      isInteractive={true}
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -393,13 +437,13 @@ const GameTable = () => {
 
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-cyan-200 text-md font-bold">Score:</h1>
-              <p className="text-white font-medium">{scores[player.id]}</p>
+              <p className="text-white font-medium">{scores?.[player.id]}</p>
             </div>
 
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-cyan-200 text-md font-bold">Bid:</h1>
               <p className="text-white font-medium">
-                {currentRound.playerBids[player.id] != null
+                {currentRound.playerBids?.[player.id] != null
                   ? currentRound.playerBids[player.id]
                   : "Yet to Bid"}
               </p>

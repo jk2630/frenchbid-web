@@ -44,13 +44,13 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
         </span>
         <span className="text-teal-200 text-xs">
           S:{""}
-          {scores[id]}
+          {scores?.[id]}
         </span>
         <span className="text-teal-200 text-xs">
           B:{""}
           {isCurrentPlayerTurn && gameData.gameState === "BIDDING"
             ? "Bidding"
-            : currentRound.playerBids[id] != null
+            : currentRound.playerBids?.[id] != null
             ? currentRound.playerBids[id]
             : "None"}
         </span>
