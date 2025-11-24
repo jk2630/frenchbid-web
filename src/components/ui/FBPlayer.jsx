@@ -56,7 +56,7 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
         </span>
         <span className="text-teal-200 text-xs">
           W:{""}
-          {playerTotalWins[id] || 0}
+          {playerTotalWins?.[id] || 0}
         </span>
       </div>
       {cardsPlayedByPlayers != null && cardsPlayedByPlayers[id] != null && (

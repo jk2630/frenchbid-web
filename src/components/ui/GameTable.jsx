@@ -47,14 +47,6 @@ const GameTable = () => {
   const [loading, setLoading] = useState(false);
   const [gamePause, setGamePause] = useState(false);
 
-  const getPlayerTotalWins = () => {
-    return JSON.parse(localStorage.getItem("playerTotalWins"));
-  };
-
-  const updatePlayerTotalWins = (playerTotalWins) => {
-    localStorage.setItem("playerTotalWins", JSON.stringify(playerTotalWins));
-  };
-
   // --- 6. GAME VARIABLES (Now safe to calculate) ---
   const isBidding = gameData.gameState === "BIDDING";
   const isInProgress = gameData.gameState === "IN_PROGRESS";
@@ -70,6 +62,8 @@ const GameTable = () => {
   const currentRound = gameRounds[currentRoundIndex];
   const subRoundIndex = Object.keys(currentRound.subRounds).length - 1;
   const currentSubRound = currentRound.subRounds[subRoundIndex];
+
+  const playerTotalWins = currentRound.playerWins;
 
   // We calculate these here but set them in an effect.
   const winnerName = currentSubRound.winnerId
@@ -89,44 +83,6 @@ const GameTable = () => {
   const bidNumbersList = useMemo(() => {
     return Array.from({ length: 15 }, (_, i) => i);
   }, [navigate]);
-
-  // const playerTotalWins = useMemo(() => {
-  //   const totalWins = {};
-
-  //   for (let i = 0; i <= subRoundIndex; i++) {
-  //     const subRound = currentRound.subRounds[i];
-  //     if (!subRound) continue;
-
-  //     if (
-  //       subRound.cardsPlayed == null ||
-  //       subRound.cardsPlayed.length != currentGamePlayers.length
-  //     )
-  //       continue;
-
-  //     const winnerId = subRound.winnerId;
-  //     if (!winnerId) continue;
-
-  //     totalWins[winnerId] = (totalWins[winnerId] || 0) + 1;
-  //   }
-  //   return totalWins;
-  // }, [currentRound, subRoundIndex, currentGamePlayers.length]);
-
-  useEffect(() => {
-    if (!gamePause) return;
-    const winnerId = currentSubRound.winnerId;
-
-    let playerTotalWinsObj = getPlayerTotalWins() || {};
-
-    playerTotalWinsObj = {
-      ...playerTotalWinsObj,
-      [winnerId]: (playerTotalWinsObj[winnerId] || 0) + 1,
-    };
-    updatePlayerTotalWins(playerTotalWinsObj);
-  }, [gamePause, currentSubRound]);
-
-  useEffect(() => updatePlayerTotalWins({}), [currentRoundIndex]);
-
-  // --- 8. HOOKS (Effects for State Synchronization) ---
 
   // FIX: This effect synchronizes `myHand` state with the context
   useEffect(() => {
@@ -273,7 +229,7 @@ const GameTable = () => {
           <FBPlayers
             currentPlayerTurn={playerTurn}
             displayPlayers={displayPlayers}
-            playerTotalWins={getPlayerTotalWins() || {}}
+            playerTotalWins={playerTotalWins}
           />
         </div>
 
@@ -487,7 +443,7 @@ const GameTable = () => {
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-cyan-200 text-md font-bold">Won:</h1>
               <p className="text-white font-medium">
-                {getPlayerTotalWins()?.[player.id] || 0}
+                {playerTotalWins?.[player.id] || 0}
               </p>
             </div>
           </div>
