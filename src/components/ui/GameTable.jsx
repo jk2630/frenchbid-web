@@ -81,8 +81,8 @@ const GameTable = () => {
   }, [gamePlayers, player]);
 
   const bidNumbersList = useMemo(() => {
-    return Array.from({ length: 15 }, (_, i) => i);
-  }, [navigate]);
+    return Array.from({ length: currentRoundIndex + 2 }, (_, i) => i);
+  }, [navigate, currentRoundIndex]);
 
   // FIX: This effect synchronizes `myHand` state with the context
   useEffect(() => {
