@@ -222,7 +222,7 @@ const GameTable = () => {
         inGame={true}
         navigate={navigate}
         playersCount={currentGamePlayers.length}
-        round={currentRoundIndex + 1}
+        round={currentRound.id}
       />
       <main className="w-full grow flex flex-col items-center justify-between p-2">
         <div className="flex flex-col w-full lg:flex-row items-center gap-4">
