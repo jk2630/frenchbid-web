@@ -115,8 +115,7 @@ const GameTable = () => {
     if (!gamePause) return;
     const winnerId = currentSubRound.winnerId;
 
-    let playerTotalWinsObj = getPlayerTotalWins();
-    if (playerTotalWinsObj == null) playerTotalWinsObj = {};
+    let playerTotalWinsObj = getPlayerTotalWins() || {};
 
     playerTotalWinsObj = {
       ...playerTotalWinsObj,
@@ -274,7 +273,7 @@ const GameTable = () => {
           <FBPlayers
             currentPlayerTurn={playerTurn}
             displayPlayers={displayPlayers}
-            playerTotalWins={getPlayerTotalWins()}
+            playerTotalWins={getPlayerTotalWins() || {}}
           />
         </div>
 
@@ -488,7 +487,7 @@ const GameTable = () => {
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-cyan-200 text-md font-bold">Won:</h1>
               <p className="text-white font-medium">
-                {getPlayerTotalWins()[player.id] || 0}
+                {getPlayerTotalWins()?.[player.id] || 0}
               </p>
             </div>
           </div>
