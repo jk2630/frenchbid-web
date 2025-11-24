@@ -46,7 +46,14 @@ const GameTable = () => {
   const [selectedBid, setSelectedBid] = useState(null);
   const [loading, setLoading] = useState(false);
   const [gamePause, setGamePause] = useState(false);
-  const [playerTotalWins, setPlayerTotalWins] = useState({});
+
+  const getPlayerTotalWins = () => {
+    return JSON.parse(localStorage.getItem("playerTotalWins"));
+  };
+
+  const updatePlayerTotalWins = (playerTotalWins) => {
+    localStorage.setItem("playerTotalWins", JSON.stringify(playerTotalWins));
+  };
 
   // --- 6. GAME VARIABLES (Now safe to calculate) ---
   const isBidding = gameData.gameState === "BIDDING";
@@ -107,13 +114,16 @@ const GameTable = () => {
   useEffect(() => {
     if (!gamePause) return;
     const winnerId = currentSubRound.winnerId;
-    setPlayerTotalWins((prev) => ({
-      ...prev,
-      [winnerId]: (playerTotalWins[winnerId] || 0) + 1,
-    }));
+
+    const playerTotalWinsObj = getPlayerTotalWins();
+    playerTotalWinsObj = {
+      ...playerTotalWinsObj,
+      [winnerId]: (playerTotalWinsObj[winnerId] || 0) + 1,
+    };
+    updatePlayerTotalWins(playerTotalWinsObj);
   }, [gamePause, currentSubRound]);
 
-  useEffect(() => setPlayerTotalWins({}), [currentRoundIndex]);
+  useEffect(() => updatePlayerTotalWins({}), [currentRoundIndex]);
 
   // --- 8. HOOKS (Effects for State Synchronization) ---
 
@@ -262,7 +272,7 @@ const GameTable = () => {
           <FBPlayers
             currentPlayerTurn={playerTurn}
             displayPlayers={displayPlayers}
-            playerTotalWins={playerTotalWins}
+            playerTotalWins={getPlayerTotalWins()}
           />
         </div>
 
@@ -476,7 +486,7 @@ const GameTable = () => {
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-cyan-200 text-md font-bold">Won:</h1>
               <p className="text-white font-medium">
-                {playerTotalWins[player.id] || 0}
+                {getPlayerTotalWins()[player.id] || 0}
               </p>
             </div>
           </div>
