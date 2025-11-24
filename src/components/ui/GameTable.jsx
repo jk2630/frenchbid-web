@@ -115,7 +115,9 @@ const GameTable = () => {
     if (!gamePause) return;
     const winnerId = currentSubRound.winnerId;
 
-    const playerTotalWinsObj = getPlayerTotalWins();
+    let playerTotalWinsObj = getPlayerTotalWins();
+    if (playerTotalWinsObj == null) playerTotalWinsObj = {};
+
     playerTotalWinsObj = {
       ...playerTotalWinsObj,
       [winnerId]: (playerTotalWinsObj[winnerId] || 0) + 1,
