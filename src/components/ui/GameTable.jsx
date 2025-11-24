@@ -222,7 +222,7 @@ const GameTable = () => {
           setTimeout(() => {
             setGamePause(false);
             fetchCurrentGame();
-          }, 5000);
+          }, 3000);
         } else {
           updateGameData({ currentPlayerTurnIndex: currentPlayerTurnIndex });
         }
