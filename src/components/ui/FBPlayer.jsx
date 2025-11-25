@@ -7,12 +7,15 @@ import { useMemo } from "react";
 // --- Single Player Component ---
 // Opponent cards are not interactive.
 const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
-  const { gameRounds, gameData, scores } = useGame(GameContext);
+  const { gameRounds, gameData, gamePlayers, scores } = useGame(GameContext);
   const currentRoundIndex = Object.keys(gameRounds).length - 1;
   const currentRound = gameRounds[currentRoundIndex];
   const subRoundIndex = Object.keys(currentRound.subRounds).length - 1;
   const cardsPlayedByPlayers =
     currentRound.subRounds[subRoundIndex].cardsPlayed;
+  const dealerIndex = gameData.dealerIndex;
+  const isDealerPlayer =
+    id === gamePlayers[Object.keys(gamePlayers)[dealerIndex]].id;
 
   const isCurrentPlayerTurn = id === currentPlayerTurn;
 
@@ -34,7 +37,11 @@ const FBPlayer = ({ playerName, id, currentPlayerTurn, playerTotalWins }) => {
     }
   `}
       >
-        <i className="fas fa-user text-teal-100 text-2xl"></i>
+        <i
+          className={`fas fa-user ${
+            isDealerPlayer ? "text-pink-300" : "text-teal-100"
+          } text-2xl`}
+        ></i>
         <span
           className={`font-semibold text-sm mt-1 ${
             isCurrentPlayerTurn ? "text-yellow-300" : "text-white"
